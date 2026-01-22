@@ -1,0 +1,77 @@
+{% extends 'layout.html.twig' %}
+
+{% block title %}Utilisateurs - Factu{% endblock %}
+
+{% block page_title %}Gestion des utilisateurs{% endblock %}
+
+{% block page_actions %}
+<button class="px-4 py-2 text-sm font-medium text-white bg-blue-600 hover:bg-blue-700 rounded-lg">
+    + Nouvel utilisateur
+</button>
+{% endblock %}
+
+{% block content %}
+<div class="bg-white rounded-lg shadow">
+    <div class="overflow-x-auto">
+        <table class="w-full text-sm text-left text-gray-500">
+            <thead class="text-xs text-gray-700 uppercase bg-gray-50">
+                <tr>
+                    <th scope="col" class="px-6 py-3">Nom</th>
+                    <th scope="col" class="px-6 py-3">Email</th>
+                    <th scope="col" class="px-6 py-3">Roles</th>
+                    <th scope="col" class="px-6 py-3">Statut</th>
+                    <th scope="col" class="px-6 py-3 text-right">Actions</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for user in users %}
+                <tr class="bg-white border-b hover:bg-gray-50">
+                    <td class="px-6 py-4 font-medium text-gray-900">
+                        {{ user.nom }}
+                    </td>
+                    <td class="px-6 py-4">
+                        {{ user.email }}
+                    </td>
+                    <td class="px-6 py-4">
+                        {% for role in user.roles %}
+                            {% if role == 'ROLE_ADMIN' %}
+                                <span class="px-2 py-1 text-xs font-medium text-purple-800 bg-purple-100 rounded-full">Admin</span>
+                            {% elseif role == 'ROLE_USER' %}
+                                <span class="px-2 py-1 text-xs font-medium text-blue-800 bg-blue-100 rounded-full">Utilisateur</span>
+                            {% endif %}
+                        {% endfor %}
+                    </td>
+                    <td class="px-6 py-4">
+                        {% if user.actif %}
+                            <span class="px-2 py-1 text-xs font-medium text-green-800 bg-green-100 rounded-full">Actif</span>
+                        {% else %}
+                            <span class="px-2 py-1 text-xs font-medium text-red-800 bg-red-100 rounded-full">Inactif</span>
+                        {% endif %}
+                    </td>
+                    <td class="px-6 py-4 text-right space-x-2">
+                        <button class="text-blue-600 hover:underline">Modifier</button>
+                        <button class="text-gray-600 hover:underline">
+                            {% if user.actif %}Desactiver{% else %}Activer{% endif %}
+                        </button>
+                    </td>
+                </tr>
+                {% else %}
+                <tr>
+                    <td colspan="5" class="px-6 py-8 text-center text-gray-500">
+                        Aucun utilisateur configure.
+                    </td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+</div>
+
+<div class="mt-6 bg-yellow-50 border border-yellow-200 rounded-lg p-4">
+    <h3 class="text-sm font-medium text-yellow-800 mb-2">Note</h3>
+    <p class="text-sm text-yellow-700">
+        La gestion complete des utilisateurs (creation, modification, suppression) sera implementee dans une version ulterieure.
+        Pour l'instant, les utilisateurs doivent etre crees manuellement en base de donnees.
+    </p>
+</div>
+{% endblock %}

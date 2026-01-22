@@ -1,0 +1,311 @@
+{% extends 'layout.html.twig' %}
+
+{% block title %}{{ emetteur.nom }} ({{ emetteur.code }}) - Factu{% endblock %}
+
+{% block page_title %}{{ emetteur.nom }} ({{ emetteur.code }}){% endblock %}
+
+{% block page_actions %}
+<div class="flex space-x-2">
+    <a href="{{ path('app_admin_emetteurs') }}" class="btn-secondary">
+        Retour
+    </a>
+    <a href="{{ path('app_admin_emetteurs_edit', {id: emetteur.id}) }}" class="btn-secondary">
+        Modifier
+    </a>
+</div>
+{% endblock %}
+
+{% block content %}
+<div x-data="{ activeTab: 'informations' }">
+    {# Tabs navigation #}
+    <div class="bg-white rounded-t-lg border-b">
+        <nav class="flex space-x-8 px-6" aria-label="Tabs">
+            <button @click="activeTab = 'informations'"
+                    :class="activeTab === 'informations' ? 'border-blue-500 text-blue-600' : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300'"
+                    class="py-4 px-1 border-b-2 font-medium text-sm">
+                Informations
+            </button>
+            <button @click="activeTab = 'versions'"
+                    :class="activeTab === 'versions' ? 'border-blue-500 text-blue-600' : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300'"
+                    class="py-4 px-1 border-b-2 font-medium text-sm">
+                Versions ({{ versions|length }})
+            </button>
+            <button @click="activeTab = 'parametres'"
+                    :class="activeTab === 'parametres' ? 'border-blue-500 text-blue-600' : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300'"
+                    class="py-4 px-1 border-b-2 font-medium text-sm">
+                Parametres facturation
+            </button>
+            <button @click="activeTab = 'cgv'"
+                    :class="activeTab === 'cgv' ? 'border-blue-500 text-blue-600' : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300'"
+                    class="py-4 px-1 border-b-2 font-medium text-sm">
+                CGV ({{ cgvAssociations|length }})
+            </button>
+        </nav>
+    </div>
+
+    {# Tab content #}
+    <div class="bg-white rounded-b-lg shadow p-6">
+
+        {# Onglet Informations #}
+        <div x-show="activeTab === 'informations'">
+            {% if versionActive %}
+            <div class="grid grid-cols-2 gap-6">
+                <div>
+                    <h3 class="text-lg font-medium text-gray-900 mb-4">Informations legales</h3>
+                    <dl class="space-y-3">
+                        <div>
+                            <dt class="text-sm text-gray-500">Raison sociale</dt>
+                            <dd class="text-sm font-medium text-gray-900">{{ versionActive.raisonSociale }}</dd>
+                        </div>
+                        {% if versionActive.formeJuridique %}
+                        <div>
+                            <dt class="text-sm text-gray-500">Forme juridique</dt>
+                            <dd class="text-sm font-medium text-gray-900">{{ versionActive.formeJuridique }}</dd>
+                        </div>
+                        {% endif %}
+                        {% if versionActive.capital %}
+                        <div>
+                            <dt class="text-sm text-gray-500">Capital</dt>
+                            <dd class="text-sm font-medium text-gray-900">{{ versionActive.capital|number_format(2, ',', ' ') }} EUR</dd>
+                        </div>
+                        {% endif %}
+                        <div>
+                            <dt class="text-sm text-gray-500">SIREN</dt>
+                            <dd class="text-sm font-medium text-gray-900 font-mono">{{ versionActive.sirenFormatted }}</dd>
+                        </div>
+                        {% if versionActive.tva %}
+                        <div>
+                            <dt class="text-sm text-gray-500">TVA Intra.</dt>
+                            <dd class="text-sm font-medium text-gray-900 font-mono">{{ versionActive.tva }}</dd>
+                        </div>
+                        {% endif %}
+                    </dl>
+                </div>
+                <div>
+                    <h3 class="text-lg font-medium text-gray-900 mb-4">Coordonnees</h3>
+                    <dl class="space-y-3">
+                        <div>
+                            <dt class="text-sm text-gray-500">Adresse</dt>
+                            <dd class="text-sm font-medium text-gray-900 whitespace-pre-line">{{ versionActive.adresse }}</dd>
+                        </div>
+                        <div>
+                            <dt class="text-sm text-gray-500">Email</dt>
+                            <dd class="text-sm font-medium text-gray-900">{{ versionActive.email }}</dd>
+                        </div>
+                        {% if versionActive.telephone %}
+                        <div>
+                            <dt class="text-sm text-gray-500">Telephone</dt>
+                            <dd class="text-sm font-medium text-gray-900">{{ versionActive.telephone }}</dd>
+                        </div>
+                        {% endif %}
+                        {% if versionActive.iban %}
+                        <div>
+                            <dt class="text-sm text-gray-500">IBAN</dt>
+                            <dd class="text-sm font-medium text-gray-900 font-mono">{{ versionActive.ibanFormatted }}</dd>
+                        </div>
+                        {% endif %}
+                        {% if versionActive.bic %}
+                        <div>
+                            <dt class="text-sm text-gray-500">BIC</dt>
+                            <dd class="text-sm font-medium text-gray-900 font-mono">{{ versionActive.bic }}</dd>
+                        </div>
+                        {% endif %}
+                    </dl>
+                </div>
+            </div>
+            <div class="mt-6 pt-6 border-t flex items-center justify-between">
+                <p class="text-sm text-gray-500">
+                    Version active depuis le {{ versionActive.dateEffet|date('d/m/Y') }}
+                </p>
+                <a href="{{ path('app_admin_emetteurs_version_new', {id: emetteur.id}) }}" class="btn-primary">
+                    Creer une nouvelle version
+                </a>
+            </div>
+            {% else %}
+            <div class="text-center py-8">
+                <p class="text-gray-500 mb-4">Aucune version configuree pour cet emetteur.</p>
+                <a href="{{ path('app_admin_emetteurs_version_new', {id: emetteur.id}) }}" class="btn-primary">
+                    Ajouter les informations
+                </a>
+            </div>
+            {% endif %}
+        </div>
+
+        {# Onglet Versions #}
+        <div x-show="activeTab === 'versions'" x-cloak>
+            <div class="flex justify-between items-center mb-4">
+                <h3 class="text-lg font-medium text-gray-900">Historique des versions</h3>
+                <a href="{{ path('app_admin_emetteurs_version_new', {id: emetteur.id}) }}" class="btn-primary">
+                    Nouvelle version
+                </a>
+            </div>
+            {% if versions|length > 0 %}
+            <div class="overflow-x-auto">
+                <table class="w-full text-sm text-left text-gray-500">
+                    <thead class="text-xs text-gray-700 uppercase bg-gray-50">
+                        <tr>
+                            <th scope="col" class="px-4 py-3">Date effet</th>
+                            <th scope="col" class="px-4 py-3">Date fin</th>
+                            <th scope="col" class="px-4 py-3">Raison sociale</th>
+                            <th scope="col" class="px-4 py-3">IBAN</th>
+                            <th scope="col" class="px-4 py-3">Statut</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for version in versions %}
+                        <tr class="bg-white border-b">
+                            <td class="px-4 py-3">{{ version.dateEffet|date('d/m/Y') }}</td>
+                            <td class="px-4 py-3">{{ version.dateFin ? version.dateFin|date('d/m/Y') : '-' }}</td>
+                            <td class="px-4 py-3 font-medium text-gray-900">{{ version.raisonSociale }}</td>
+                            <td class="px-4 py-3 font-mono">{{ version.ibanLast4 }}</td>
+                            <td class="px-4 py-3">
+                                {% if version.active %}
+                                    <span class="px-2 py-1 text-xs font-medium text-green-800 bg-green-100 rounded-full">Active</span>
+                                {% else %}
+                                    <span class="px-2 py-1 text-xs font-medium text-gray-600 bg-gray-100 rounded-full">Archivee</span>
+                                {% endif %}
+                            </td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+            {% else %}
+            <p class="text-center py-8 text-gray-500">Aucune version.</p>
+            {% endif %}
+        </div>
+
+        {# Onglet Parametres facturation #}
+        <div x-show="activeTab === 'parametres'" x-cloak>
+            {% set params = emetteur.parametreFacturation %}
+            {% if params %}
+            <div class="grid grid-cols-2 gap-6">
+                <div>
+                    <h3 class="text-lg font-medium text-gray-900 mb-4">Numerotation</h3>
+                    <dl class="space-y-3">
+                        <div>
+                            <dt class="text-sm text-gray-500">Format</dt>
+                            <dd class="text-sm font-medium text-gray-900 font-mono">{{ params.formatNumero }}</dd>
+                        </div>
+                        <div>
+                            <dt class="text-sm text-gray-500">Prochain numero</dt>
+                            <dd class="text-sm font-medium text-gray-900">{{ params.prochainNumero }}</dd>
+                        </div>
+                        <div>
+                            <dt class="text-sm text-gray-500">Apercu</dt>
+                            <dd class="text-sm font-medium text-blue-600 font-mono">{{ params.apercuNumero }}</dd>
+                        </div>
+                    </dl>
+                </div>
+                <div>
+                    <h3 class="text-lg font-medium text-gray-900 mb-4">Facturation</h3>
+                    <dl class="space-y-3">
+                        <div>
+                            <dt class="text-sm text-gray-500">Delai echeance</dt>
+                            <dd class="text-sm font-medium text-gray-900">{{ params.delaiEcheance }} jours</dd>
+                        </div>
+                        {% if params.mentionsLegales %}
+                        <div>
+                            <dt class="text-sm text-gray-500">Mentions legales</dt>
+                            <dd class="text-sm font-medium text-gray-900">{{ params.mentionsLegales }}</dd>
+                        </div>
+                        {% endif %}
+                    </dl>
+                </div>
+            </div>
+            <div class="mt-6 pt-6 border-t flex justify-end">
+                <a href="{{ path('app_admin_emetteurs_params', {id: emetteur.id}) }}" class="btn-primary">
+                    Modifier les parametres
+                </a>
+            </div>
+            {% else %}
+            <div class="text-center py-8">
+                <p class="text-gray-500 mb-4">Aucun parametre de facturation configure.</p>
+                <a href="{{ path('app_admin_emetteurs_params', {id: emetteur.id}) }}" class="btn-primary">
+                    Configurer les parametres
+                </a>
+            </div>
+            {% endif %}
+        </div>
+
+        {# Onglet CGV #}
+        <div x-show="activeTab === 'cgv'" x-cloak>
+            <div class="flex justify-between items-center mb-4">
+                <h3 class="text-lg font-medium text-gray-900">CGV associees</h3>
+            </div>
+
+            {% if cgvAssociations|length > 0 %}
+            <div class="overflow-x-auto mb-6">
+                <table class="w-full text-sm text-left text-gray-500">
+                    <thead class="text-xs text-gray-700 uppercase bg-gray-50">
+                        <tr>
+                            <th scope="col" class="px-4 py-3">Version</th>
+                            <th scope="col" class="px-4 py-3">Periode</th>
+                            <th scope="col" class="px-4 py-3">Defaut</th>
+                            <th scope="col" class="px-4 py-3 text-right">Actions</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for assoc in cgvAssociations %}
+                        <tr class="bg-white border-b">
+                            <td class="px-4 py-3 font-medium text-gray-900">{{ assoc.cgv.nom }}</td>
+                            <td class="px-4 py-3">{{ assoc.cgv.periode }}</td>
+                            <td class="px-4 py-3">
+                                {% if assoc.parDefaut %}
+                                    <span class="text-green-600">Oui</span>
+                                {% else %}
+                                    <form action="{{ path('app_admin_emetteurs_cgv_default', {id: emetteur.id, cgvId: assoc.cgv.id}) }}" method="post" class="inline">
+                                        <input type="hidden" name="_token" value="{{ csrf_token('default_cgv' ~ emetteur.id ~ '_' ~ assoc.cgv.id) }}">
+                                        <button type="submit" class="text-blue-600 hover:underline text-sm">Definir par defaut</button>
+                                    </form>
+                                {% endif %}
+                            </td>
+                            <td class="px-4 py-3 text-right space-x-2">
+                                <a href="{{ path('app_admin_cgv_download', {id: assoc.cgv.id}) }}" class="text-blue-600 hover:underline">Telecharger</a>
+                                <form action="{{ path('app_admin_emetteurs_cgv_remove', {id: emetteur.id, cgvId: assoc.cgv.id}) }}" method="post" class="inline">
+                                    <input type="hidden" name="_token" value="{{ csrf_token('remove_cgv' ~ emetteur.id ~ '_' ~ assoc.cgv.id) }}">
+                                    <button type="submit" class="text-red-600 hover:underline" onclick="return confirm('Dissocier cette CGV ?')">Dissocier</button>
+                                </form>
+                            </td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+            {% else %}
+            <p class="text-gray-500 mb-6">Aucune CGV associee a cet emetteur.</p>
+            {% endif %}
+
+            {# Associer une CGV #}
+            {% if cgvDisponibles|length > 0 %}
+            <div class="bg-gray-50 rounded-lg p-4">
+                <h4 class="text-sm font-medium text-gray-700 mb-3">Associer une CGV</h4>
+                <form action="{{ path('app_admin_emetteurs_cgv_add', {id: emetteur.id}) }}" method="post" class="flex items-end space-x-4">
+                    <input type="hidden" name="_token" value="{{ csrf_token('add_cgv' ~ emetteur.id) }}">
+                    <div class="flex-1">
+                        <label for="cgv_id" class="block text-sm text-gray-600 mb-1">CGV</label>
+                        <select name="cgv_id" id="cgv_id" class="form-input w-full">
+                            {% for cgv in cgvDisponibles %}
+                            <option value="{{ cgv.id }}">{{ cgv.nom }} ({{ cgv.periode }})</option>
+                            {% endfor %}
+                        </select>
+                    </div>
+                    <div class="flex items-center space-x-2">
+                        <input type="checkbox" name="par_defaut" id="par_defaut" value="1" class="form-checkbox">
+                        <label for="par_defaut" class="text-sm text-gray-600">Par defaut</label>
+                    </div>
+                    <button type="submit" class="btn-primary">
+                        Associer
+                    </button>
+                </form>
+            </div>
+            {% else %}
+            <p class="text-sm text-gray-500">
+                Toutes les CGV sont deja associees ou aucune CGV n'existe.
+                <a href="{{ path('app_admin_cgv_new') }}" class="text-blue-600 hover:underline">Creer une nouvelle CGV</a>
+            </p>
+            {% endif %}
+        </div>
+    </div>
+</div>
+{% endblock %}

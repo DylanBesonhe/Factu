@@ -1,0 +1,69 @@
+{% extends 'layout.html.twig' %}
+
+{% block title %}Parametres facturation - {{ emetteur.nom }} - Factu{% endblock %}
+
+{% block page_title %}Parametres de facturation - {{ emetteur.nom }}{% endblock %}
+
+{% block page_actions %}
+<a href="{{ path('app_admin_emetteurs_show', {id: emetteur.id}) }}" class="btn-secondary">Retour</a>
+{% endblock %}
+
+{% block content %}
+<div class="max-w-2xl">
+    <div class="bg-white rounded-lg shadow p-6">
+        {{ form_start(form, {'attr': {'class': 'space-y-6'}}) }}
+
+            {# Numerotation #}
+            <h3 class="text-lg font-medium text-gray-900 mb-4">Numerotation des factures</h3>
+
+            <div class="grid grid-cols-2 gap-4">
+                <div>
+                    {{ form_row(form.formatNumero) }}
+                </div>
+                <div>
+                    {{ form_row(form.prochainNumero) }}
+                </div>
+            </div>
+
+            {% if params.id %}
+            <div class="bg-blue-50 border border-blue-200 rounded-lg p-4">
+                <p class="text-sm text-blue-800">
+                    <strong>Apercu:</strong> <span class="font-mono">{{ params.apercuNumero }}</span>
+                </p>
+            </div>
+            {% endif %}
+
+            <hr class="my-6">
+
+            {# Facturation #}
+            <h3 class="text-lg font-medium text-gray-900 mb-4">Parametres de facturation</h3>
+
+            <div>
+                {{ form_row(form.delaiEcheance) }}
+            </div>
+
+            <div>
+                {{ form_row(form.mentionsLegales, {'attr': {'rows': 4}}) }}
+            </div>
+
+            <hr class="my-6">
+
+            {# Email #}
+            <h3 class="text-lg font-medium text-gray-900 mb-4">Email d'envoi</h3>
+
+            <div>
+                {{ form_row(form.emailObjet) }}
+            </div>
+
+            <div>
+                {{ form_row(form.emailCorps, {'attr': {'rows': 6}}) }}
+            </div>
+
+            <div class="flex justify-end space-x-4 pt-6 border-t">
+                <a href="{{ path('app_admin_emetteurs_show', {id: emetteur.id}) }}" class="btn-secondary">Annuler</a>
+                <button type="submit" class="btn-primary">Enregistrer</button>
+            </div>
+        {{ form_end(form) }}
+    </div>
+</div>
+{% endblock %}

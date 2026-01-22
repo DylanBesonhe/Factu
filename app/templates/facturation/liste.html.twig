@@ -1,0 +1,31 @@
+{% extends 'layout.html.twig' %}
+
+{% block title %}Liste des factures - Factu{% endblock %}
+
+{% block page_title %}Liste des factures{% endblock %}
+
+{% block content %}
+<div class="bg-white rounded-lg shadow">
+    <div class="overflow-x-auto">
+        <table class="w-full text-sm text-left text-gray-500">
+            <thead class="text-xs text-gray-700 uppercase bg-gray-50">
+                <tr>
+                    <th class="px-6 py-3">Numero</th>
+                    <th class="px-6 py-3">Client</th>
+                    <th class="px-6 py-3">Date</th>
+                    <th class="px-6 py-3">Montant TTC</th>
+                    <th class="px-6 py-3">Statut</th>
+                    <th class="px-6 py-3">Actions</th>
+                </tr>
+            </thead>
+            <tbody>
+                <tr class="bg-white border-b hover:bg-gray-50">
+                    <td class="px-6 py-4 font-medium text-gray-900" colspan="6">
+                        Aucune facture
+                    </td>
+                </tr>
+            </tbody>
+        </table>
+    </div>
+</div>
+{% endblock %}

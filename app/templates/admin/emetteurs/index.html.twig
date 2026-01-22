@@ -1,0 +1,81 @@
+{% extends 'layout.html.twig' %}
+
+{% block title %}Emetteurs - Factu{% endblock %}
+
+{% block page_title %}Gestion des emetteurs{% endblock %}
+
+{% block page_actions %}
+<a href="{{ path('app_admin_emetteurs_new') }}" class="btn-primary">
+    + Nouvel emetteur
+</a>
+{% endblock %}
+
+{% block content %}
+<div class="bg-white rounded-lg shadow">
+    <div class="overflow-x-auto">
+        <table class="w-full text-sm text-left text-gray-500">
+            <thead class="text-xs text-gray-700 uppercase bg-gray-50">
+                <tr>
+                    <th scope="col" class="px-6 py-3">Code</th>
+                    <th scope="col" class="px-6 py-3">Nom</th>
+                    <th scope="col" class="px-6 py-3">Raison sociale</th>
+                    <th scope="col" class="px-6 py-3">Statut</th>
+                    <th scope="col" class="px-6 py-3 text-right">Actions</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for emetteur in emetteurs %}
+                <tr class="bg-white border-b hover:bg-gray-50">
+                    <td class="px-6 py-4 font-mono font-medium text-gray-900">
+                        {{ emetteur.code }}
+                    </td>
+                    <td class="px-6 py-4 font-medium text-gray-900">
+                        {{ emetteur.nom }}
+                    </td>
+                    <td class="px-6 py-4">
+                        {% set version = emetteur.versionActive %}
+                        {% if version %}
+                            {{ version.raisonSociale }}
+                        {% else %}
+                            <span class="text-gray-400 italic">Aucune version</span>
+                        {% endif %}
+                    </td>
+                    <td class="px-6 py-4">
+                        {% if emetteur.actif %}
+                            <span class="px-2 py-1 text-xs font-medium text-green-800 bg-green-100 rounded-full">Actif</span>
+                        {% else %}
+                            <span class="px-2 py-1 text-xs font-medium text-red-800 bg-red-100 rounded-full">Inactif</span>
+                        {% endif %}
+                        {% if emetteur.parDefaut %}
+                            <span class="ml-1 px-2 py-1 text-xs font-medium text-blue-800 bg-blue-100 rounded-full">Defaut</span>
+                        {% endif %}
+                    </td>
+                    <td class="px-6 py-4 text-right space-x-2">
+                        <a href="{{ path('app_admin_emetteurs_show', {id: emetteur.id}) }}" class="text-blue-600 hover:underline">Voir</a>
+                        <a href="{{ path('app_admin_emetteurs_edit', {id: emetteur.id}) }}" class="text-blue-600 hover:underline">Modifier</a>
+                        {% if not emetteur.parDefaut and emetteur.actif %}
+                        <form action="{{ path('app_admin_emetteurs_default', {id: emetteur.id}) }}" method="post" class="inline">
+                            <input type="hidden" name="_token" value="{{ csrf_token('default' ~ emetteur.id) }}">
+                            <button type="submit" class="text-gray-600 hover:underline">Par defaut</button>
+                        </form>
+                        {% endif %}
+                        <form action="{{ path('app_admin_emetteurs_toggle', {id: emetteur.id}) }}" method="post" class="inline">
+                            <input type="hidden" name="_token" value="{{ csrf_token('toggle' ~ emetteur.id) }}">
+                            <button type="submit" class="text-gray-600 hover:underline">
+                                {% if emetteur.actif %}Desactiver{% else %}Activer{% endif %}
+                            </button>
+                        </form>
+                    </td>
+                </tr>
+                {% else %}
+                <tr>
+                    <td colspan="5" class="px-6 py-8 text-center text-gray-500">
+                        Aucun emetteur configure. <a href="{{ path('app_admin_emetteurs_new') }}" class="text-blue-600 hover:underline">Creer le premier</a>
+                    </td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+</div>
+{% endblock %}

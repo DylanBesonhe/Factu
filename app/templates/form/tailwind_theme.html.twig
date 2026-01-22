@@ -1,0 +1,95 @@
+{% use 'form_div_layout.html.twig' %}
+
+{# Label #}
+{% block form_label %}
+{% if label is not same as(false) %}
+    {% if not compound %}
+        {% set label_attr = label_attr|merge({class: (label_attr.class|default('') ~ ' block mb-2 text-sm font-medium text-gray-900')|trim}) %}
+    {% endif %}
+    {% if required %}
+        {% set label_attr = label_attr|merge({class: (label_attr.class|default('')) ~ ''}) %}
+    {% endif %}
+    {{ parent() }}
+{% endif %}
+{% endblock form_label %}
+
+{# Text input, email, password, etc. #}
+{% block form_widget_simple %}
+    {% if type is not defined or type not in ['file', 'hidden'] %}
+        {% set attr = attr|merge({class: (attr.class|default('') ~ ' form-input')|trim}) %}
+    {% endif %}
+    {{ parent() }}
+{% endblock form_widget_simple %}
+
+{# Textarea #}
+{% block textarea_widget %}
+    {% set attr = attr|merge({class: (attr.class|default('') ~ ' form-input')|trim}) %}
+    {{ parent() }}
+{% endblock textarea_widget %}
+
+{# Select/Choice widget #}
+{% block choice_widget_collapsed %}
+    {% set attr = attr|merge({class: (attr.class|default('') ~ ' form-input')|trim}) %}
+    {{ parent() }}
+{% endblock choice_widget_collapsed %}
+
+{# Checkbox #}
+{% block checkbox_widget %}
+    {% set attr = attr|merge({class: (attr.class|default('') ~ ' form-checkbox')|trim}) %}
+    {{ parent() }}
+{% endblock checkbox_widget %}
+
+{# Radio #}
+{% block radio_widget %}
+    {% set attr = attr|merge({class: (attr.class|default('') ~ ' w-4 h-4 text-blue-600 bg-gray-100 border-gray-300 focus:ring-blue-500')|trim}) %}
+    {{ parent() }}
+{% endblock radio_widget %}
+
+{# File #}
+{% block file_widget %}
+    {% set attr = attr|merge({class: (attr.class|default('') ~ ' block w-full text-sm text-gray-900 border border-gray-300 rounded-lg cursor-pointer bg-gray-50 focus:outline-none')|trim}) %}
+    {{ parent() }}
+{% endblock file_widget %}
+
+{# Form row #}
+{% block form_row %}
+    {% set row_attr = row_attr|merge({class: (row_attr.class|default('') ~ ' mb-4')|trim}) %}
+    {{ parent() }}
+{% endblock form_row %}
+
+{# Errors #}
+{% block form_errors %}
+{% if errors|length > 0 %}
+    <ul class="mt-1 text-sm text-red-600">
+        {% for error in errors %}
+            <li>{{ error.message }}</li>
+        {% endfor %}
+    </ul>
+{% endif %}
+{% endblock form_errors %}
+
+{# Help text #}
+{% block form_help %}
+{% if help is not empty %}
+    {% set help_attr = help_attr|merge({class: (help_attr.class|default('') ~ ' mt-1 text-xs text-gray-500')|trim}) %}
+    <p id="{{ id }}_help"{% with {attr: help_attr} %}{{ block('attributes') }}{% endwith %}>
+        {%- if translation_domain is same as(false) -%}
+            {{- help -}}
+        {%- else -%}
+            {{- help|trans({}, translation_domain) -}}
+        {%- endif -%}
+    </p>
+{% endif %}
+{% endblock form_help %}
+
+{# Button #}
+{% block button_widget %}
+    {% set attr = attr|merge({class: (attr.class|default('') ~ ' btn-primary')|trim}) %}
+    {{ parent() }}
+{% endblock button_widget %}
+
+{# Submit button #}
+{% block submit_widget %}
+    {% set attr = attr|merge({class: (attr.class|default('') ~ ' btn-primary')|trim}) %}
+    {{ parent() }}
+{% endblock submit_widget %}

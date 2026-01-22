@@ -1,0 +1,45 @@
+{% extends 'layout.html.twig' %}
+
+{% block title %}Nouveau module - Factu{% endblock %}
+
+{% block page_title %}Nouveau module{% endblock %}
+
+{% block page_actions %}
+<a href="{{ path('app_admin_modules') }}" class="btn-secondary">Retour</a>
+{% endblock %}
+
+{% block content %}
+<div class="bg-white rounded-lg shadow p-6 max-w-2xl">
+    {{ form_start(form, {'attr': {'class': 'space-y-6'}}) }}
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+            <div class="md:col-span-2">
+                {{ form_row(form.nom) }}
+            </div>
+
+            <div>
+                {{ form_row(form.prixDefaut) }}
+            </div>
+
+            <div>
+                {{ form_row(form.tauxTva) }}
+            </div>
+
+            <div class="md:col-span-2">
+                {{ form_row(form.description, {'attr': {'rows': 3}}) }}
+            </div>
+
+            <div class="md:col-span-2">
+                <div class="flex items-center">
+                    {{ form_widget(form.actif) }}
+                    <label class="ml-2 text-sm font-medium text-gray-900">Module actif</label>
+                </div>
+            </div>
+        </div>
+
+        <div class="flex justify-end space-x-4 pt-4 border-t">
+            <a href="{{ path('app_admin_modules') }}" class="btn-secondary">Annuler</a>
+            <button type="submit" class="btn-primary">Creer le module</button>
+        </div>
+    {{ form_end(form) }}
+</div>
+{% endblock %}

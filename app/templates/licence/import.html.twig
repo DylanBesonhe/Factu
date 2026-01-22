@@ -1,0 +1,18 @@
+{% extends 'layout.html.twig' %}
+
+{% block title %}Import licences - Factu{% endblock %}
+
+{% block page_title %}Importer un releve de licences{% endblock %}
+
+{% block content %}
+<div class="bg-white rounded-lg shadow p-6">
+    <form>
+        <div class="mb-6">
+            <label class="block mb-2 text-sm font-medium text-gray-900">Fichier CSV</label>
+            <input type="file" accept=".csv" class="block w-full text-sm text-gray-900 border border-gray-300 rounded-lg cursor-pointer bg-gray-50 focus:outline-none">
+            <p class="mt-1 text-sm text-gray-500">Format attendu: instance, nombre_licences, date</p>
+        </div>
+        <button type="submit" class="px-4 py-2 text-sm text-white bg-blue-600 hover:bg-blue-700 rounded-lg">Importer</button>
+    </form>
+</div>
+{% endblock %}

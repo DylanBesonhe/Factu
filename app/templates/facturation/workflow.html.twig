@@ -1,0 +1,37 @@
+{% extends 'layout.html.twig' %}
+
+{% block title %}Facturation - Factu{% endblock %}
+
+{% block page_title %}Workflow de facturation{% endblock %}
+
+{% block content %}
+<div class="grid grid-cols-1 lg:grid-cols-3 gap-4">
+    <div class="bg-white rounded-lg shadow">
+        <div class="p-4 border-b border-gray-200 bg-yellow-50">
+            <h3 class="font-semibold text-yellow-800">A creer</h3>
+            <p class="text-sm text-yellow-600">0 factures</p>
+        </div>
+        <div class="p-4 min-h-[400px]">
+            <p class="text-sm text-gray-500 text-center py-8">Aucune facture a creer</p>
+        </div>
+    </div>
+    <div class="bg-white rounded-lg shadow">
+        <div class="p-4 border-b border-gray-200 bg-blue-50">
+            <h3 class="font-semibold text-blue-800">Brouillons</h3>
+            <p class="text-sm text-blue-600">0 factures</p>
+        </div>
+        <div class="p-4 min-h-[400px]">
+            <p class="text-sm text-gray-500 text-center py-8">Aucun brouillon</p>
+        </div>
+    </div>
+    <div class="bg-white rounded-lg shadow">
+        <div class="p-4 border-b border-gray-200 bg-green-50">
+            <h3 class="font-semibold text-green-800">Validees</h3>
+            <p class="text-sm text-green-600">0 factures</p>
+        </div>
+        <div class="p-4 min-h-[400px]">
+            <p class="text-sm text-gray-500 text-center py-8">Aucune facture validee</p>
+        </div>
+    </div>
+</div>
+{% endblock %}

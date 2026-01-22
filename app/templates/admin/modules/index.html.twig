@@ -1,0 +1,69 @@
+{% extends 'layout.html.twig' %}
+
+{% block title %}Modules - Factu{% endblock %}
+
+{% block page_title %}Gestion des modules{% endblock %}
+
+{% block page_actions %}
+<a href="{{ path('app_admin_modules_new') }}" class="btn-primary">
+    + Nouveau module
+</a>
+{% endblock %}
+
+{% block content %}
+<div class="bg-white rounded-lg shadow">
+    <div class="overflow-x-auto">
+        <table class="w-full text-sm text-left text-gray-500">
+            <thead class="text-xs text-gray-700 uppercase bg-gray-50">
+                <tr>
+                    <th scope="col" class="px-6 py-3">Nom</th>
+                    <th scope="col" class="px-6 py-3">Prix defaut (HT)</th>
+                    <th scope="col" class="px-6 py-3">TVA</th>
+                    <th scope="col" class="px-6 py-3">Statut</th>
+                    <th scope="col" class="px-6 py-3 text-right">Actions</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for module in modules %}
+                <tr class="bg-white border-b hover:bg-gray-50">
+                    <td class="px-6 py-4 font-medium text-gray-900">
+                        {{ module.nom }}
+                        {% if module.description %}
+                            <p class="text-xs text-gray-500 mt-1">{{ module.description|u.truncate(50) }}</p>
+                        {% endif %}
+                    </td>
+                    <td class="px-6 py-4">
+                        {{ module.prixDefaut|number_format(2, ',', ' ') }} EUR
+                    </td>
+                    <td class="px-6 py-4">
+                        {{ module.tauxTva|number_format(2) }}%
+                    </td>
+                    <td class="px-6 py-4">
+                        {% if module.actif %}
+                            <span class="px-2 py-1 text-xs font-medium text-green-800 bg-green-100 rounded-full">Actif</span>
+                        {% else %}
+                            <span class="px-2 py-1 text-xs font-medium text-red-800 bg-red-100 rounded-full">Inactif</span>
+                        {% endif %}
+                    </td>
+                    <td class="px-6 py-4 text-right space-x-2">
+                        <a href="{{ path('app_admin_modules_edit', {id: module.id}) }}" class="text-blue-600 hover:underline">Modifier</a>
+                        <form action="{{ path('app_admin_modules_toggle', {id: module.id}) }}" method="post" class="inline">
+                            <input type="hidden" name="_token" value="{{ csrf_token('toggle' ~ module.id) }}">
+                            <button type="submit" class="text-gray-600 hover:underline">
+                                {% if module.actif %}Desactiver{% else %}Activer{% endif %}
+                            </button>
+                        </form>
+                    </td>
+                </tr>
+                {% else %}
+                <tr>
+                    <td colspan="5" class="px-6 py-8 text-center text-gray-500">
+                        Aucun module configure. <a href="{{ path('app_admin_modules_new') }}" class="text-blue-600 hover:underline">Creer le premier</a>
+                    </td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+</div>
+{% endblock %}

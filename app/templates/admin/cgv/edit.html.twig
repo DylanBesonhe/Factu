@@ -1,0 +1,61 @@
+{% extends 'layout.html.twig' %}
+
+{% block title %}Modifier CGV - Factu{% endblock %}
+
+{% block page_title %}Modifier la version CGV{% endblock %}
+
+{% block page_actions %}
+<a href="{{ path('app_admin_cgv') }}" class="btn-secondary">Retour</a>
+{% endblock %}
+
+{% block content %}
+<div class="bg-white rounded-lg shadow p-6 max-w-2xl">
+    {{ form_start(form, {'attr': {'class': 'space-y-6', 'enctype': 'multipart/form-data'}}) }}
+        <div>
+            {{ form_row(form.nom) }}
+        </div>
+
+        <div>
+            <label class="form-label">Fichier actuel</label>
+            <div class="flex items-center gap-2 p-3 bg-gray-50 rounded-lg mb-4">
+                <svg class="w-5 h-5 text-red-500" fill="currentColor" viewBox="0 0 20 20">
+                    <path fill-rule="evenodd" d="M4 4a2 2 0 012-2h4.586A2 2 0 0112 2.586L15.414 6A2 2 0 0116 7.414V16a2 2 0 01-2 2H6a2 2 0 01-2-2V4z" clip-rule="evenodd"/>
+                </svg>
+                <a href="{{ path('app_admin_cgv_download', {id: cgv.id}) }}" class="text-blue-600 hover:underline">
+                    {{ cgv.fichierOriginal }}
+                </a>
+            </div>
+
+            <label class="form-label">Remplacer le fichier (optionnel)</label>
+            <div class="flex items-center justify-center w-full">
+                <label class="flex flex-col items-center justify-center w-full h-32 border-2 border-gray-300 border-dashed rounded-lg cursor-pointer bg-gray-50 hover:bg-gray-100">
+                    <div class="flex flex-col items-center justify-center pt-5 pb-6">
+                        <svg class="w-8 h-8 mb-4 text-gray-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 16a4 4 0 01-.88-7.903A5 5 0 1115.9 6L16 6a5 5 0 011 9.9M15 13l-3-3m0 0l-3 3m3-3v12"></path>
+                        </svg>
+                        <p class="mb-2 text-sm text-gray-500"><span class="font-semibold">Cliquez pour telecharger</span> un nouveau fichier</p>
+                        <p class="text-xs text-gray-500">PDF uniquement (max. 5MB)</p>
+                    </div>
+                    {{ form_widget(form.fichier, {'attr': {'class': 'hidden'}}) }}
+                </label>
+            </div>
+            {{ form_errors(form.fichier) }}
+        </div>
+
+        <div class="grid grid-cols-2 gap-4">
+            <div>
+                {{ form_row(form.dateDebut) }}
+            </div>
+            <div>
+                {{ form_row(form.dateFin) }}
+                <p class="mt-1 text-xs text-gray-500">Laissez vide si pas de date de fin</p>
+            </div>
+        </div>
+
+        <div class="flex justify-end space-x-4 pt-4 border-t">
+            <a href="{{ path('app_admin_cgv') }}" class="btn-secondary">Annuler</a>
+            <button type="submit" class="btn-primary">Enregistrer</button>
+        </div>
+    {{ form_end(form) }}
+</div>
+{% endblock %}

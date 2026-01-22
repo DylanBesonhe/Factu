@@ -1,0 +1,36 @@
+@import "tailwindcss";
+@import "flowbite";
+
+@source "../../templates/**/*.html.twig";
+@source "../controllers/**/*.js";
+
+/* Form base styles */
+.form-input {
+    @apply bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-blue-500 focus:border-blue-500 block w-full p-2.5;
+}
+
+.form-checkbox {
+    @apply w-4 h-4 text-blue-600 bg-gray-100 border-gray-300 rounded focus:ring-blue-500;
+}
+
+.form-label {
+    @apply block mb-2 text-sm font-medium text-gray-900;
+}
+
+/* Button styles */
+.btn-primary {
+    @apply px-4 py-2 text-sm font-medium text-white bg-blue-600 hover:bg-blue-700 rounded-lg focus:ring-4 focus:ring-blue-300;
+}
+
+.btn-secondary {
+    @apply px-4 py-2 text-sm font-medium text-gray-700 bg-white border border-gray-300 rounded-lg hover:bg-gray-50;
+}
+
+.btn-danger {
+    @apply px-4 py-2 text-sm font-medium text-red-600 bg-white border border-red-300 rounded-lg hover:bg-red-50;
+}
+
+/* Alpine.js x-cloak directive */
+[x-cloak] {
+    display: none !important;
+}

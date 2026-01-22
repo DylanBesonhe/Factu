@@ -1,0 +1,90 @@
+{% extends 'layout.html.twig' %}
+
+{% block title %}Bibliotheque CGV - Factu{% endblock %}
+
+{% block page_title %}Bibliotheque CGV{% endblock %}
+
+{% block page_actions %}
+<a href="{{ path('app_admin_cgv_new') }}" class="btn-primary">
+    + Nouvelle CGV
+</a>
+{% endblock %}
+
+{% block content %}
+<div class="mb-4">
+    <p class="text-sm text-gray-600">
+        Cette bibliotheque contient toutes les versions des CGV. Associez-les aux emetteurs depuis la fiche de chaque emetteur.
+    </p>
+</div>
+
+<div class="bg-white rounded-lg shadow">
+    <div class="overflow-x-auto">
+        <table class="w-full text-sm text-left text-gray-500">
+            <thead class="text-xs text-gray-700 uppercase bg-gray-50">
+                <tr>
+                    <th scope="col" class="px-6 py-3">Version</th>
+                    <th scope="col" class="px-6 py-3">Fichier</th>
+                    <th scope="col" class="px-6 py-3">Periode</th>
+                    <th scope="col" class="px-6 py-3">Emetteurs</th>
+                    <th scope="col" class="px-6 py-3">Statut</th>
+                    <th scope="col" class="px-6 py-3 text-right">Actions</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for item in cgv_data %}
+                {% set cgv = item.cgv %}
+                {% set emetteurCodes = item.emetteurCodes %}
+                <tr class="bg-white border-b hover:bg-gray-50">
+                    <td class="px-6 py-4 font-medium text-gray-900">
+                        {{ cgv.nom }}
+                    </td>
+                    <td class="px-6 py-4">
+                        <a href="{{ path('app_admin_cgv_download', {id: cgv.id}) }}" class="text-blue-600 hover:underline flex items-center gap-1">
+                            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 10v6m0 0l-3-3m3 3l3-3m2 8H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"></path>
+                            </svg>
+                            {{ cgv.fichierOriginal }}
+                        </a>
+                    </td>
+                    <td class="px-6 py-4">
+                        {{ cgv.periode }}
+                    </td>
+                    <td class="px-6 py-4">
+                        {% if emetteurCodes|length > 0 %}
+                            {% for code in emetteurCodes %}
+                                <span class="px-2 py-0.5 text-xs font-medium text-blue-800 bg-blue-100 rounded mr-1">{{ code }}</span>
+                            {% endfor %}
+                        {% else %}
+                            <span class="text-gray-400 text-xs">Aucun</span>
+                        {% endif %}
+                    </td>
+                    <td class="px-6 py-4">
+                        {% set statut = cgv.statut %}
+                        {% if statut == 'Actif' %}
+                            <span class="px-2 py-1 text-xs font-medium text-green-800 bg-green-100 rounded-full">{{ statut }}</span>
+                        {% elseif statut == 'A venir' %}
+                            <span class="px-2 py-1 text-xs font-medium text-yellow-800 bg-yellow-100 rounded-full">{{ statut }}</span>
+                        {% else %}
+                            <span class="px-2 py-1 text-xs font-medium text-gray-800 bg-gray-100 rounded-full">{{ statut }}</span>
+                        {% endif %}
+                    </td>
+                    <td class="px-6 py-4 text-right space-x-2">
+                        <a href="{{ path('app_admin_cgv_edit', {id: cgv.id}) }}" class="text-blue-600 hover:underline">Modifier</a>
+                        <form action="{{ path('app_admin_cgv_delete', {id: cgv.id}) }}" method="post" class="inline" onsubmit="return confirm('Etes-vous sur de vouloir supprimer cette version des CGV ?')">
+                            <input type="hidden" name="_token" value="{{ csrf_token('delete' ~ cgv.id) }}">
+                            <button type="submit" class="text-red-600 hover:underline">Supprimer</button>
+                        </form>
+                    </td>
+                </tr>
+                {% else %}
+                <tr>
+                    <td colspan="6" class="px-6 py-8 text-center text-gray-500">
+                        Aucune version CGV configuree. <a href="{{ path('app_admin_cgv_new') }}" class="text-blue-600 hover:underline">Ajouter la premiere</a>
+                    </td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+</div>
+{% endblock %}
