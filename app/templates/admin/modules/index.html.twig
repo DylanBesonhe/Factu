@@ -17,7 +17,7 @@
             <thead class="text-xs text-gray-700 uppercase bg-gray-50">
                 <tr>
                     <th scope="col" class="px-6 py-3">Nom</th>
-                    <th scope="col" class="px-6 py-3">Prix defaut (HT)</th>
+                    <th scope="col" class="px-6 py-3">Prix défaut (HT)</th>
                     <th scope="col" class="px-6 py-3">TVA</th>
                     <th scope="col" class="px-6 py-3">Statut</th>
                     <th scope="col" class="px-6 py-3 text-right">Actions</th>
@@ -50,7 +50,7 @@
                         <form action="{{ path('app_admin_modules_toggle', {id: module.id}) }}" method="post" class="inline">
                             <input type="hidden" name="_token" value="{{ csrf_token('toggle' ~ module.id) }}">
                             <button type="submit" class="text-gray-600 hover:underline">
-                                {% if module.actif %}Desactiver{% else %}Activer{% endif %}
+                                {% if module.actif %}Désactiver{% else %}Activer{% endif %}
                             </button>
                         </form>
                     </td>
@@ -58,7 +58,7 @@
                 {% else %}
                 <tr>
                     <td colspan="5" class="px-6 py-8 text-center text-gray-500">
-                        Aucun module configure. <a href="{{ path('app_admin_modules_new') }}" class="text-blue-600 hover:underline">Creer le premier</a>
+                        Aucun module configuré. <a href="{{ path('app_admin_modules_new') }}" class="text-blue-600 hover:underline">Créer le premier</a>
                     </td>
                 </tr>
                 {% endfor %}

@@ -200,4 +200,68 @@ class ContratRepository extends ServiceEntityRepository
 
         return $prefix . '-' . $year . '-' . str_pad($seq + 1, 4, '0', STR_PAD_LEFT);
     }
+
+    /**
+     * Retourne les statistiques pour le dashboard
+     * @return array{caMensuel: string, caAnnuel: string, contratsARenouveler: int}
+     */
+    public function getStatistiques(): array
+    {
+        $contratsActifs = $this->createQueryBuilder('c')
+            ->leftJoin('c.lignes', 'l')
+            ->addSelect('l')
+            ->where('c.statut = :statut')
+            ->andWhere('c.dateFin IS NULL OR c.dateFin >= :now')
+            ->setParameter('statut', Contrat::STATUT_ACTIF)
+            ->setParameter('now', new \DateTime())
+            ->getQuery()
+            ->getResult();
+
+        $caMensuel = '0.00';
+        $caAnnuel = '0.00';
+
+        foreach ($contratsActifs as $contrat) {
+            $totalHt = $contrat->getTotalHt();
+
+            // CA annuel = somme des totaux selon périodicité
+            $multiplicateur = match ($contrat->getPeriodicite()) {
+                Contrat::PERIODICITE_MENSUELLE => 12,
+                Contrat::PERIODICITE_TRIMESTRIELLE => 4,
+                Contrat::PERIODICITE_ANNUELLE => 1,
+                default => 1,
+            };
+            $caAnnuel = bcadd($caAnnuel, bcmul($totalHt, (string) $multiplicateur, 2), 2);
+
+            // CA mensuel = total annuel / 12
+            $caMensuel = bcadd($caMensuel, bcdiv(bcmul($totalHt, (string) $multiplicateur, 2), '12', 2), 2);
+        }
+
+        // Contrats à renouveler (anniversaire dans les 30 prochains jours)
+        $contratsARenouveler = 0;
+        $now = new \DateTime();
+        $in30Days = (new \DateTime())->modify('+30 days');
+
+        foreach ($contratsActifs as $contrat) {
+            $anniversaire = $contrat->getDateAnniversaire();
+            if ($anniversaire === null) {
+                continue;
+            }
+
+            // Normaliser l'anniversaire à l'année courante pour comparaison
+            $anniversaireThisYear = \DateTime::createFromFormat(
+                'Y-m-d',
+                $now->format('Y') . '-' . $anniversaire->format('m-d')
+            );
+
+            if ($anniversaireThisYear >= $now && $anniversaireThisYear <= $in30Days) {
+                $contratsARenouveler++;
+            }
+        }
+
+        return [
+            'caMensuel' => $caMensuel,
+            'caAnnuel' => $caAnnuel,
+            'contratsARenouveler' => $contratsARenouveler,
+        ];
+    }
 }

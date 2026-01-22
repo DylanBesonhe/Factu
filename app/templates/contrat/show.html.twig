@@ -4,6 +4,14 @@
 
 {% block page_title %}Contrat {{ contrat.numero }}{% endblock %}
 
+{% block breadcrumbs %}
+    {% set breadcrumbs = [
+        {label: 'Contrats', path: path('app_contrat_index')},
+        {label: contrat.numero}
+    ] %}
+    {% include 'components/_breadcrumbs.html.twig' %}
+{% endblock %}
+
 {% block page_actions %}
     {% if contrat.statut == 'actif' %}
         <form method="post" action="{{ path('app_contrat_statut', {id: contrat.id}) }}" class="inline" onsubmit="return confirm('Suspendre ce contrat ?')">
@@ -13,34 +21,34 @@
                 Suspendre
             </button>
         </form>
-        <form method="post" action="{{ path('app_contrat_statut', {id: contrat.id}) }}" class="inline" onsubmit="return confirm('Resilier ce contrat ?')">
+        <form method="post" action="{{ path('app_contrat_statut', {id: contrat.id}) }}" class="inline" onsubmit="return confirm('Résilier ce contrat ?')">
             <input type="hidden" name="_token" value="{{ csrf_token('change_statut' ~ contrat.id) }}">
             <input type="hidden" name="statut" value="resilie">
             <button type="submit" class="px-4 py-2 text-sm text-red-600 hover:bg-red-50 rounded-lg">
-                Resilier
+                Résilier
             </button>
         </form>
     {% elseif contrat.statut == 'suspendu' %}
-        <form method="post" action="{{ path('app_contrat_statut', {id: contrat.id}) }}" class="inline" onsubmit="return confirm('Reactiver ce contrat ?')">
+        <form method="post" action="{{ path('app_contrat_statut', {id: contrat.id}) }}" class="inline" onsubmit="return confirm('Réactiver ce contrat ?')">
             <input type="hidden" name="_token" value="{{ csrf_token('change_statut' ~ contrat.id) }}">
             <input type="hidden" name="statut" value="actif">
             <button type="submit" class="px-4 py-2 text-sm text-green-600 hover:bg-green-50 rounded-lg">
-                Reactiver
+                Réactiver
             </button>
         </form>
-        <form method="post" action="{{ path('app_contrat_statut', {id: contrat.id}) }}" class="inline" onsubmit="return confirm('Resilier ce contrat ?')">
+        <form method="post" action="{{ path('app_contrat_statut', {id: contrat.id}) }}" class="inline" onsubmit="return confirm('Résilier ce contrat ?')">
             <input type="hidden" name="_token" value="{{ csrf_token('change_statut' ~ contrat.id) }}">
             <input type="hidden" name="statut" value="resilie">
             <button type="submit" class="px-4 py-2 text-sm text-red-600 hover:bg-red-50 rounded-lg">
-                Resilier
+                Résilier
             </button>
         </form>
     {% elseif contrat.statut == 'resilie' %}
-        <form method="post" action="{{ path('app_contrat_statut', {id: contrat.id}) }}" class="inline" onsubmit="return confirm('Reactiver ce contrat ?')">
+        <form method="post" action="{{ path('app_contrat_statut', {id: contrat.id}) }}" class="inline" onsubmit="return confirm('Réactiver ce contrat ?')">
             <input type="hidden" name="_token" value="{{ csrf_token('change_statut' ~ contrat.id) }}">
             <input type="hidden" name="statut" value="actif">
             <button type="submit" class="px-4 py-2 text-sm text-green-600 hover:bg-green-50 rounded-lg">
-                Reactiver
+                Réactiver
             </button>
         </form>
     {% endif %}
@@ -64,7 +72,7 @@
                 Lignes ({{ contrat.lignes|length }})
             </button>
             <button @click="activeTab = 'evenements'" :class="activeTab === 'evenements' ? 'border-blue-500 text-blue-600' : 'border-transparent text-gray-500 hover:text-gray-700'" class="py-2 px-1 border-b-2 font-medium text-sm">
-                Evenements ({{ contrat.evenements|length }})
+                Événements ({{ contrat.evenements|length }})
             </button>
             <button @click="activeTab = 'fichiers'" :class="activeTab === 'fichiers' ? 'border-blue-500 text-blue-600' : 'border-transparent text-gray-500 hover:text-gray-700'" class="py-2 px-1 border-b-2 font-medium text-sm">
                 Fichiers ({{ contrat.fichiers|length }})
@@ -81,7 +89,7 @@
             <h3 class="text-lg font-medium text-gray-900 mb-4">Informations du contrat</h3>
             <dl class="space-y-3">
                 <div class="flex justify-between">
-                    <dt class="text-gray-500">Numero</dt>
+                    <dt class="text-gray-500">Numéro</dt>
                     <dd class="font-mono text-gray-900">{{ contrat.numero }}</dd>
                 </div>
                 <div class="flex justify-between">
@@ -92,12 +100,12 @@
                         {% elseif contrat.statut == 'suspendu' %}
                             <span class="px-2 py-1 text-xs font-medium text-yellow-800 bg-yellow-100 rounded-full">Suspendu</span>
                         {% else %}
-                            <span class="px-2 py-1 text-xs font-medium text-red-800 bg-red-100 rounded-full">Resilie</span>
+                            <span class="px-2 py-1 text-xs font-medium text-red-800 bg-red-100 rounded-full">Résilié</span>
                         {% endif %}
                     </dd>
                 </div>
                 <div class="flex justify-between">
-                    <dt class="text-gray-500">Periodicite</dt>
+                    <dt class="text-gray-500">Périodicité</dt>
                     <dd class="text-gray-900">{{ contrat.periodiciteLabel }}</dd>
                 </div>
                 <div class="flex justify-between">
@@ -120,7 +128,7 @@
                 </div>
                 {% if contrat.factureParticuliere %}
                 <div class="flex justify-between">
-                    <dt class="text-gray-500">Facture particuliere</dt>
+                    <dt class="text-gray-500">Facture particulière</dt>
                     <dd><span class="px-2 py-1 text-xs font-medium text-orange-800 bg-orange-100 rounded-full">Oui</span></dd>
                 </div>
                 {% endif %}
@@ -155,7 +163,7 @@
                 {% endif %}
                 {% endif %}
                 <div class="flex justify-between">
-                    <dt class="text-gray-500">Emetteur</dt>
+                    <dt class="text-gray-500">Émetteur</dt>
                     <dd class="text-gray-900">{{ contrat.emetteur.nom }}</dd>
                 </div>
             </dl>
@@ -186,14 +194,14 @@
         </div>
 
         <div class="bg-white rounded-lg shadow p-6">
-            <h3 class="text-lg font-medium text-gray-900 mb-4">Informations systeme</h3>
+            <h3 class="text-lg font-medium text-gray-900 mb-4">Informations système</h3>
             <dl class="space-y-3">
                 <div class="flex justify-between">
-                    <dt class="text-gray-500">Date creation</dt>
+                    <dt class="text-gray-500">Date création</dt>
                     <dd class="text-gray-900">{{ contrat.createdAt|date('d/m/Y H:i') }}</dd>
                 </div>
                 <div class="flex justify-between">
-                    <dt class="text-gray-500">Derniere modification</dt>
+                    <dt class="text-gray-500">Dernière modification</dt>
                     <dd class="text-gray-900">{{ contrat.updatedAt|date('d/m/Y H:i') }}</dd>
                 </div>
             </dl>
@@ -224,12 +232,9 @@
                             <tr class="bg-white border-b hover:bg-gray-50">
                                 <td class="px-4 py-3 font-medium text-gray-900">
                                     {{ ligne.module.nom }}
-                                    {% if ligne.description %}
-                                        <p class="text-xs text-gray-500">{{ ligne.description }}</p>
-                                    {% endif %}
                                 </td>
                                 <td class="px-4 py-3 text-right">{{ ligne.quantite }}</td>
-                                <td class="px-4 py-3 text-right">{{ ligne.prixUnitaireHt|number_format(2, ',', ' ') }} &euro;</td>
+                                <td class="px-4 py-3 text-right">{{ ligne.prixUnitaire|number_format(2, ',', ' ') }} &euro;</td>
                                 <td class="px-4 py-3 text-right">
                                     {% if ligne.remise %}
                                         {{ ligne.remise|number_format(2, ',', ' ') }}%
@@ -274,16 +279,15 @@
             {{ form_start(ligneForm, {'action': path('app_contrat_ligne_new', {id: contrat.id})}) }}
                 {{ form_row(ligneForm.module, {'attr': {'class': 'w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-blue-500 focus:border-blue-500'}}) }}
                 {{ form_row(ligneForm.quantite, {'attr': {'class': 'w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-blue-500 focus:border-blue-500'}}) }}
-                {{ form_row(ligneForm.prixUnitaireHt, {'attr': {'class': 'w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-blue-500 focus:border-blue-500'}}) }}
+                {{ form_row(ligneForm.prixUnitaire, {'attr': {'class': 'w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-blue-500 focus:border-blue-500'}}) }}
                 {{ form_row(ligneForm.remise, {'attr': {'class': 'w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-blue-500 focus:border-blue-500'}}) }}
                 {{ form_row(ligneForm.tauxTva, {'attr': {'class': 'w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-blue-500 focus:border-blue-500'}}) }}
-                {{ form_row(ligneForm.description, {'attr': {'class': 'w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-blue-500 focus:border-blue-500'}}) }}
                 <button type="submit" class="w-full px-4 py-2 text-sm text-white bg-blue-600 hover:bg-blue-700 rounded-lg mt-2">Ajouter</button>
             {{ form_end(ligneForm) }}
         </div>
     </div>
 
-    {# Tab: Evenements #}
+    {# Tab: Événements #}
     <div x-show="activeTab === 'evenements'" class="grid grid-cols-1 lg:grid-cols-3 gap-4">
         <div class="lg:col-span-2 space-y-4">
             {% for evenement in contrat.evenements %}
@@ -304,7 +308,7 @@
                                 {% if evenement.auteur %} - {{ evenement.auteur }}{% endif %}
                             </p>
                         </div>
-                        <form method="post" action="{{ path('app_contrat_evenement_delete', {id: contrat.id, evenementId: evenement.id}) }}" onsubmit="return confirm('Supprimer cet evenement ?')">
+                        <form method="post" action="{{ path('app_contrat_evenement_delete', {id: contrat.id, evenementId: evenement.id}) }}" onsubmit="return confirm('Supprimer cet événement ?')">
                             <input type="hidden" name="_token" value="{{ csrf_token('delete_evenement' ~ evenement.id) }}">
                             <button type="submit" class="text-red-600 hover:text-red-900">
                                 <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -316,13 +320,13 @@
                 </div>
             {% else %}
                 <div class="bg-white rounded-lg shadow p-4 text-center text-gray-500">
-                    Aucun evenement
+                    Aucun événement
                 </div>
             {% endfor %}
         </div>
 
         <div class="bg-white rounded-lg shadow p-4">
-            <h3 class="text-lg font-medium text-gray-900 mb-4">Ajouter un evenement</h3>
+            <h3 class="text-lg font-medium text-gray-900 mb-4">Ajouter un événement</h3>
             {{ form_start(evenementForm, {'action': path('app_contrat_evenement_new', {id: contrat.id})}) }}
                 {{ form_row(evenementForm.type, {'attr': {'class': 'w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-blue-500 focus:border-blue-500'}}) }}
                 {{ form_row(evenementForm.description, {'attr': {'class': 'w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-blue-500 focus:border-blue-500'}}) }}
@@ -336,7 +340,7 @@
     <div x-show="activeTab === 'fichiers'" class="grid grid-cols-1 lg:grid-cols-3 gap-4">
         <div class="lg:col-span-2 bg-white rounded-lg shadow">
             <div class="p-4 border-b border-gray-200">
-                <h3 class="text-lg font-medium text-gray-900">Documents attaches</h3>
+                <h3 class="text-lg font-medium text-gray-900">Documents attachés</h3>
             </div>
             <div class="overflow-x-auto">
                 <table class="w-full text-sm text-left text-gray-500">
@@ -361,7 +365,7 @@
                                 <td class="px-4 py-3">{{ (fichier.taille / 1024)|number_format(0, ',', ' ') }} Ko</td>
                                 <td class="px-4 py-3">{{ fichier.createdAt|date('d/m/Y H:i') }}</td>
                                 <td class="px-4 py-3">
-                                    <a href="{{ path('app_contrat_fichier_download', {id: contrat.id, fichierId: fichier.id}) }}" class="text-blue-600 hover:text-blue-900 mr-2" title="Telecharger">
+                                    <a href="{{ path('app_contrat_fichier_download', {id: contrat.id, fichierId: fichier.id}) }}" class="text-blue-600 hover:text-blue-900 mr-2" title="Télécharger">
                                         <svg class="w-4 h-4 inline" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 10v6m0 0l-3-3m3 3l3-3m2 8H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"></path>
                                         </svg>
@@ -413,7 +417,7 @@
                     <tr>
                         <th class="px-4 py-3">Mois</th>
                         <th class="px-4 py-3 text-right">Nb licences</th>
-                        <th class="px-4 py-3">Date releve</th>
+                        <th class="px-4 py-3">Date relevé</th>
                     </tr>
                 </thead>
                 <tbody>

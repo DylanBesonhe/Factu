@@ -13,7 +13,7 @@
 {% block content %}
 <div class="mb-4">
     <p class="text-sm text-gray-600">
-        Cette bibliotheque contient toutes les versions des CGV. Associez-les aux emetteurs depuis la fiche de chaque emetteur.
+        Cette bibliothèque contient toutes les versions des CGV. Associez-les aux émetteurs depuis la fiche de chaque émetteur.
     </p>
 </div>
 
@@ -25,7 +25,7 @@
                     <th scope="col" class="px-6 py-3">Version</th>
                     <th scope="col" class="px-6 py-3">Fichier</th>
                     <th scope="col" class="px-6 py-3">Periode</th>
-                    <th scope="col" class="px-6 py-3">Emetteurs</th>
+                    <th scope="col" class="px-6 py-3">Émetteurs</th>
                     <th scope="col" class="px-6 py-3">Statut</th>
                     <th scope="col" class="px-6 py-3 text-right">Actions</th>
                 </tr>
@@ -70,7 +70,7 @@
                     </td>
                     <td class="px-6 py-4 text-right space-x-2">
                         <a href="{{ path('app_admin_cgv_edit', {id: cgv.id}) }}" class="text-blue-600 hover:underline">Modifier</a>
-                        <form action="{{ path('app_admin_cgv_delete', {id: cgv.id}) }}" method="post" class="inline" onsubmit="return confirm('Etes-vous sur de vouloir supprimer cette version des CGV ?')">
+                        <form action="{{ path('app_admin_cgv_delete', {id: cgv.id}) }}" method="post" class="inline" onsubmit="return confirm('Êtes-vous sûr de vouloir supprimer cette version des CGV ?')">
                             <input type="hidden" name="_token" value="{{ csrf_token('delete' ~ cgv.id) }}">
                             <button type="submit" class="text-red-600 hover:underline">Supprimer</button>
                         </form>
@@ -79,7 +79,7 @@
                 {% else %}
                 <tr>
                     <td colspan="6" class="px-6 py-8 text-center text-gray-500">
-                        Aucune version CGV configuree. <a href="{{ path('app_admin_cgv_new') }}" class="text-blue-600 hover:underline">Ajouter la premiere</a>
+                        Aucune version CGV configurée. <a href="{{ path('app_admin_cgv_new') }}" class="text-blue-600 hover:underline">Ajouter la première</a>
                     </td>
                 </tr>
                 {% endfor %}

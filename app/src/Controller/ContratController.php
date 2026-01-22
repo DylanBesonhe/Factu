@@ -17,17 +17,24 @@ use App\Repository\ContratRepository;
 use App\Repository\HistoriqueLicenceRepository;
 use App\Repository\LigneContratRepository;
 use App\Service\CsvExportService;
+use App\Service\FileUploadService;
 use Doctrine\ORM\EntityManagerInterface;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\HttpFoundation\File\Exception\FileException;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\Routing\Attribute\Route;
-use Symfony\Component\String\Slugger\SluggerInterface;
 
 #[Route('/contrats')]
 class ContratController extends AbstractController
 {
+    private const UPLOAD_DIRECTORY = 'contrats';
+
+    public function __construct(
+        private FileUploadService $fileUploadService
+    ) {
+    }
+
     #[Route('', name: 'app_contrat_index', methods: ['GET'])]
     public function index(Request $request, ContratRepository $contratRepository): Response
     {
@@ -257,29 +264,21 @@ class ContratController extends AbstractController
     public function uploadFichier(
         Request $request,
         Contrat $contrat,
-        EntityManagerInterface $entityManager,
-        SluggerInterface $slugger
+        EntityManagerInterface $entityManager
     ): Response {
         $file = $request->files->get('fichier');
         $description = $request->request->get('description');
 
         if ($file) {
-            $originalFilename = pathinfo($file->getClientOriginalName(), PATHINFO_FILENAME);
-            $safeFilename = $slugger->slug($originalFilename);
-            $newFilename = $safeFilename . '-' . uniqid() . '.' . $file->guessExtension();
-
             try {
-                $file->move(
-                    $this->getParameter('kernel.project_dir') . '/storage/contrats',
-                    $newFilename
-                );
+                $uploadResult = $this->fileUploadService->upload($file, self::UPLOAD_DIRECTORY);
 
                 $fichier = new ContratFichier();
                 $fichier->setContrat($contrat);
-                $fichier->setNomOriginal($file->getClientOriginalName());
-                $fichier->setChemin('contrats/' . $newFilename);
-                $fichier->setTypeMime($file->getClientMimeType());
-                $fichier->setTaille($file->getSize());
+                $fichier->setNomOriginal($uploadResult['originalName']);
+                $fichier->setChemin(self::UPLOAD_DIRECTORY . '/' . $uploadResult['filename']);
+                $fichier->setTypeMime($uploadResult['mimeType']);
+                $fichier->setTaille($uploadResult['size']);
                 $fichier->setDescription($description);
 
                 $entityManager->persist($fichier);
@@ -308,9 +307,10 @@ class ContratController extends AbstractController
             throw $this->createNotFoundException('Fichier non trouve');
         }
 
-        $filePath = $this->getParameter('kernel.project_dir') . '/storage/' . $fichier->getChemin();
+        $filename = basename($fichier->getChemin());
+        $filePath = $this->fileUploadService->getFilePath($filename, self::UPLOAD_DIRECTORY);
 
-        if (!file_exists($filePath)) {
+        if (!$this->fileUploadService->exists($filename, self::UPLOAD_DIRECTORY)) {
             throw $this->createNotFoundException('Fichier non trouve sur le serveur');
         }
 
@@ -329,10 +329,8 @@ class ContratController extends AbstractController
 
         if ($fichier && $fichier->getContrat() === $contrat) {
             if ($this->isCsrfTokenValid('delete_fichier' . $fichierId, $request->getPayload()->getString('_token'))) {
-                $filePath = $this->getParameter('kernel.project_dir') . '/storage/' . $fichier->getChemin();
-                if (file_exists($filePath)) {
-                    unlink($filePath);
-                }
+                $filename = basename($fichier->getChemin());
+                $this->fileUploadService->delete($filename, self::UPLOAD_DIRECTORY);
 
                 $entityManager->remove($fichier);
                 $entityManager->flush();

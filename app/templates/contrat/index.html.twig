@@ -33,7 +33,7 @@
                 <option value="">Tous les statuts</option>
                 <option value="actif" {{ statutFilter == 'actif' ? 'selected' : '' }}>Actifs</option>
                 <option value="suspendu" {{ statutFilter == 'suspendu' ? 'selected' : '' }}>Suspendus</option>
-                <option value="resilie" {{ statutFilter == 'resilie' ? 'selected' : '' }}>Resilies</option>
+                <option value="resilie" {{ statutFilter == 'resilie' ? 'selected' : '' }}>Résiliés</option>
             </select>
             <button type="submit" class="px-4 py-2 text-sm text-white bg-gray-600 hover:bg-gray-700 rounded-lg">Filtrer</button>
             <a href="{{ path('app_contrat_index') }}" class="px-4 py-2 text-sm text-gray-600 hover:bg-gray-100 rounded-lg">Reset</a>
@@ -44,10 +44,10 @@
         <table class="w-full text-sm text-left text-gray-500">
             <thead class="text-xs text-gray-700 uppercase bg-gray-50">
                 <tr>
-                    <th class="px-6 py-3">Numero</th>
+                    <th class="px-6 py-3">Numéro</th>
                     <th class="px-6 py-3">Client</th>
                     <th class="px-6 py-3">Instance</th>
-                    <th class="px-6 py-3">Periodicite</th>
+                    <th class="px-6 py-3">Périodicité</th>
                     <th class="px-6 py-3">Licences</th>
                     <th class="px-6 py-3">Total HT</th>
                     <th class="px-6 py-3">Statut</th>
@@ -60,7 +60,7 @@
                         <td class="px-6 py-4 font-mono text-gray-900">
                             {{ contrat.numero }}
                             {% if contrat.factureParticuliere %}
-                                <span class="ml-1 px-1.5 py-0.5 text-xs font-medium text-orange-800 bg-orange-100 rounded" title="Facture particuliere">!</span>
+                                <span class="ml-1 px-1.5 py-0.5 text-xs font-medium text-orange-800 bg-orange-100 rounded" title="Facture particulière">!</span>
                             {% endif %}
                         </td>
                         <td class="px-6 py-4">
@@ -78,26 +78,30 @@
                             {% elseif contrat.statut == 'suspendu' %}
                                 <span class="px-2 py-1 text-xs font-medium text-yellow-800 bg-yellow-100 rounded-full">Suspendu</span>
                             {% else %}
-                                <span class="px-2 py-1 text-xs font-medium text-red-800 bg-red-100 rounded-full">Resilie</span>
+                                <span class="px-2 py-1 text-xs font-medium text-red-800 bg-red-100 rounded-full">Résilié</span>
                             {% endif %}
                         </td>
                         <td class="px-6 py-4">
-                            <a href="{{ path('app_contrat_show', {id: contrat.id}) }}" class="text-blue-600 hover:text-blue-900 mr-3" title="Voir">
-                                <svg class="w-5 h-5 inline" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"></path>
-                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z"></path>
-                                </svg>
-                            </a>
-                            <a href="{{ path('app_contrat_edit', {id: contrat.id}) }}" class="text-yellow-600 hover:text-yellow-900" title="Modifier">
-                                <svg class="w-5 h-5 inline" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"></path>
-                                </svg>
-                            </a>
+                            <div class="flex items-center space-x-2">
+                                <a href="{{ path('app_contrat_show', {id: contrat.id}) }}" class="inline-flex items-center px-2 py-1 text-xs font-medium text-blue-700 bg-blue-50 rounded hover:bg-blue-100">
+                                    <svg class="w-4 h-4 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"></path>
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z"></path>
+                                    </svg>
+                                    Voir
+                                </a>
+                                <a href="{{ path('app_contrat_edit', {id: contrat.id}) }}" class="inline-flex items-center px-2 py-1 text-xs font-medium text-amber-700 bg-amber-50 rounded hover:bg-amber-100">
+                                    <svg class="w-4 h-4 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"></path>
+                                    </svg>
+                                    Modifier
+                                </a>
+                            </div>
                         </td>
                     </tr>
                 {% else %}
                     <tr class="bg-white border-b">
-                        <td class="px-6 py-4 text-center text-gray-500" colspan="8">Aucun contrat trouve</td>
+                        <td class="px-6 py-4 text-center text-gray-500" colspan="8">Aucun contrat trouvé</td>
                     </tr>
                 {% endfor %}
             </tbody>
@@ -106,7 +110,7 @@
 
     {% if totalPages > 1 %}
         <div class="p-4 border-t border-gray-200 flex items-center justify-between">
-            <p class="text-sm text-gray-500">{{ totalItems }} contrat(s) trouve(s)</p>
+            <p class="text-sm text-gray-500">{{ totalItems }} contrat(s) trouvé(s)</p>
             <nav class="flex items-center gap-1">
                 {% if page > 1 %}
                     <a href="{{ path('app_contrat_index', {search: search, statut: statutFilter, sort: sort, direction: direction, page: page - 1}) }}" class="px-3 py-1 text-sm border rounded hover:bg-gray-50">&laquo;</a>

@@ -6,21 +6,24 @@ use App\Entity\Cgv;
 use App\Form\CgvType;
 use App\Repository\CgvRepository;
 use App\Repository\EmetteurCgvRepository;
+use App\Service\FileUploadService;
 use Doctrine\ORM\EntityManagerInterface;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\HttpFoundation\File\Exception\FileException;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\Routing\Attribute\Route;
-use Symfony\Component\String\Slugger\SluggerInterface;
+use Symfony\Component\Security\Http\Attribute\IsGranted;
 
 #[Route('/admin/cgv')]
+#[IsGranted('ROLE_ADMIN')]
 class CgvController extends AbstractController
 {
+    private const UPLOAD_DIRECTORY = 'cgv';
+
     public function __construct(
-        private string $cgvDirectory = ''
+        private FileUploadService $fileUploadService
     ) {
-        $this->cgvDirectory = dirname(__DIR__, 3) . '/storage/cgv';
     }
 
     #[Route('', name: 'app_admin_cgv')]
@@ -46,8 +49,7 @@ class CgvController extends AbstractController
     #[Route('/nouveau', name: 'app_admin_cgv_new')]
     public function new(
         Request $request,
-        EntityManagerInterface $em,
-        SluggerInterface $slugger
+        EntityManagerInterface $em
     ): Response {
         $cgv = new Cgv();
         $form = $this->createForm(CgvType::class, $cgv, ['require_file' => true]);
@@ -57,19 +59,10 @@ class CgvController extends AbstractController
             $fichier = $form->get('fichier')->getData();
 
             if ($fichier) {
-                $originalFilename = pathinfo($fichier->getClientOriginalName(), PATHINFO_FILENAME);
-                $safeFilename = $slugger->slug($originalFilename);
-                $newFilename = $safeFilename.'-'.uniqid().'.'.$fichier->guessExtension();
-
                 try {
-                    if (!is_dir($this->cgvDirectory)) {
-                        mkdir($this->cgvDirectory, 0755, true);
-                    }
-
-                    $fichier->move($this->cgvDirectory, $newFilename);
-
-                    $cgv->setFichierChemin($newFilename);
-                    $cgv->setFichierOriginal($fichier->getClientOriginalName());
+                    $uploadResult = $this->fileUploadService->upload($fichier, self::UPLOAD_DIRECTORY);
+                    $cgv->setFichierChemin($uploadResult['filename']);
+                    $cgv->setFichierOriginal($uploadResult['originalName']);
                 } catch (FileException $e) {
                     $this->addFlash('error', 'Erreur lors de l\'upload du fichier.');
                     return $this->render('admin/cgv/new.html.twig', [
@@ -95,8 +88,7 @@ class CgvController extends AbstractController
     public function edit(
         Request $request,
         Cgv $cgv,
-        EntityManagerInterface $em,
-        SluggerInterface $slugger
+        EntityManagerInterface $em
     ): Response {
         $form = $this->createForm(CgvType::class, $cgv, ['require_file' => false]);
         $form->handleRequest($request);
@@ -105,25 +97,15 @@ class CgvController extends AbstractController
             $fichier = $form->get('fichier')->getData();
 
             if ($fichier) {
-                $originalFilename = pathinfo($fichier->getClientOriginalName(), PATHINFO_FILENAME);
-                $safeFilename = $slugger->slug($originalFilename);
-                $newFilename = $safeFilename.'-'.uniqid().'.'.$fichier->guessExtension();
-
                 try {
-                    if (!is_dir($this->cgvDirectory)) {
-                        mkdir($this->cgvDirectory, 0755, true);
-                    }
-
                     // Supprimer l'ancien fichier
-                    $oldFile = $this->cgvDirectory.'/'.$cgv->getFichierChemin();
-                    if (file_exists($oldFile)) {
-                        unlink($oldFile);
+                    if ($cgv->getFichierChemin()) {
+                        $this->fileUploadService->delete($cgv->getFichierChemin(), self::UPLOAD_DIRECTORY);
                     }
 
-                    $fichier->move($this->cgvDirectory, $newFilename);
-
-                    $cgv->setFichierChemin($newFilename);
-                    $cgv->setFichierOriginal($fichier->getClientOriginalName());
+                    $uploadResult = $this->fileUploadService->upload($fichier, self::UPLOAD_DIRECTORY);
+                    $cgv->setFichierChemin($uploadResult['filename']);
+                    $cgv->setFichierOriginal($uploadResult['originalName']);
                 } catch (FileException $e) {
                     $this->addFlash('error', 'Erreur lors de l\'upload du fichier.');
                     return $this->render('admin/cgv/edit.html.twig', [
@@ -151,9 +133,8 @@ class CgvController extends AbstractController
     {
         if ($this->isCsrfTokenValid('delete'.$cgv->getId(), $request->request->get('_token'))) {
             // Supprimer le fichier
-            $filePath = $this->cgvDirectory.'/'.$cgv->getFichierChemin();
-            if (file_exists($filePath)) {
-                unlink($filePath);
+            if ($cgv->getFichierChemin()) {
+                $this->fileUploadService->delete($cgv->getFichierChemin(), self::UPLOAD_DIRECTORY);
             }
 
             $em->remove($cgv);
@@ -168,9 +149,9 @@ class CgvController extends AbstractController
     #[Route('/{id}/telecharger', name: 'app_admin_cgv_download')]
     public function download(Cgv $cgv): Response
     {
-        $filePath = $this->cgvDirectory.'/'.$cgv->getFichierChemin();
+        $filePath = $this->fileUploadService->getFilePath($cgv->getFichierChemin(), self::UPLOAD_DIRECTORY);
 
-        if (!file_exists($filePath)) {
+        if (!$this->fileUploadService->exists($cgv->getFichierChemin(), self::UPLOAD_DIRECTORY)) {
             throw $this->createNotFoundException('Le fichier n\'existe pas.');
         }
 

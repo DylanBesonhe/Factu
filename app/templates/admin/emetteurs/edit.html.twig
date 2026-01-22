@@ -2,7 +2,7 @@
 
 {% block title %}Modifier {{ emetteur.nom }} - Factu{% endblock %}
 
-{% block page_title %}Modifier l'emetteur{% endblock %}
+{% block page_title %}Modifier l'émetteur{% endblock %}
 
 {% block page_actions %}
 <a href="{{ path('app_admin_emetteurs_show', {id: emetteur.id}) }}" class="btn-secondary">Retour</a>
@@ -24,11 +24,11 @@
             <div class="grid grid-cols-2 gap-4">
                 <div class="flex items-center space-x-2">
                     {{ form_widget(form.actif) }}
-                    <label class="text-sm text-gray-700">Emetteur actif</label>
+                    <label class="text-sm text-gray-700">Émetteur actif</label>
                 </div>
                 <div class="flex items-center space-x-2">
                     {{ form_widget(form.parDefaut) }}
-                    <label class="text-sm text-gray-700">Emetteur par defaut</label>
+                    <label class="text-sm text-gray-700">Émetteur par défaut</label>
                 </div>
             </div>
 

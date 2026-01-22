@@ -1,12 +1,12 @@
 {% extends 'layout.html.twig' %}
 
-{% block title %}Emetteurs - Factu{% endblock %}
+{% block title %}Émetteurs - Factu{% endblock %}
 
-{% block page_title %}Gestion des emetteurs{% endblock %}
+{% block page_title %}Gestion des émetteurs{% endblock %}
 
 {% block page_actions %}
 <a href="{{ path('app_admin_emetteurs_new') }}" class="btn-primary">
-    + Nouvel emetteur
+    + Nouvel émetteur
 </a>
 {% endblock %}
 
@@ -47,30 +47,58 @@
                             <span class="px-2 py-1 text-xs font-medium text-red-800 bg-red-100 rounded-full">Inactif</span>
                         {% endif %}
                         {% if emetteur.parDefaut %}
-                            <span class="ml-1 px-2 py-1 text-xs font-medium text-blue-800 bg-blue-100 rounded-full">Defaut</span>
+                            <span class="ml-1 px-2 py-1 text-xs font-medium text-blue-800 bg-blue-100 rounded-full">Défaut</span>
                         {% endif %}
                     </td>
-                    <td class="px-6 py-4 text-right space-x-2">
-                        <a href="{{ path('app_admin_emetteurs_show', {id: emetteur.id}) }}" class="text-blue-600 hover:underline">Voir</a>
-                        <a href="{{ path('app_admin_emetteurs_edit', {id: emetteur.id}) }}" class="text-blue-600 hover:underline">Modifier</a>
-                        {% if not emetteur.parDefaut and emetteur.actif %}
-                        <form action="{{ path('app_admin_emetteurs_default', {id: emetteur.id}) }}" method="post" class="inline">
-                            <input type="hidden" name="_token" value="{{ csrf_token('default' ~ emetteur.id) }}">
-                            <button type="submit" class="text-gray-600 hover:underline">Par defaut</button>
-                        </form>
-                        {% endif %}
-                        <form action="{{ path('app_admin_emetteurs_toggle', {id: emetteur.id}) }}" method="post" class="inline">
-                            <input type="hidden" name="_token" value="{{ csrf_token('toggle' ~ emetteur.id) }}">
-                            <button type="submit" class="text-gray-600 hover:underline">
-                                {% if emetteur.actif %}Desactiver{% else %}Activer{% endif %}
-                            </button>
-                        </form>
+                    <td class="px-6 py-4 text-right">
+                        <div class="flex items-center justify-end space-x-2">
+                            <a href="{{ path('app_admin_emetteurs_show', {id: emetteur.id}) }}" class="inline-flex items-center px-2 py-1 text-xs font-medium text-blue-700 bg-blue-50 rounded hover:bg-blue-100">
+                                <svg class="w-4 h-4 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"></path>
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z"></path>
+                                </svg>
+                                Voir
+                            </a>
+                            <a href="{{ path('app_admin_emetteurs_edit', {id: emetteur.id}) }}" class="inline-flex items-center px-2 py-1 text-xs font-medium text-amber-700 bg-amber-50 rounded hover:bg-amber-100">
+                                <svg class="w-4 h-4 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"></path>
+                                </svg>
+                                Modifier
+                            </a>
+                            {% if not emetteur.parDefaut and emetteur.actif %}
+                            <form action="{{ path('app_admin_emetteurs_default', {id: emetteur.id}) }}" method="post" class="inline">
+                                <input type="hidden" name="_token" value="{{ csrf_token('default' ~ emetteur.id) }}">
+                                <button type="submit" class="inline-flex items-center px-2 py-1 text-xs font-medium text-purple-700 bg-purple-50 rounded hover:bg-purple-100">
+                                    <svg class="w-4 h-4 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11.049 2.927c.3-.921 1.603-.921 1.902 0l1.519 4.674a1 1 0 00.95.69h4.915c.969 0 1.371 1.24.588 1.81l-3.976 2.888a1 1 0 00-.363 1.118l1.518 4.674c.3.922-.755 1.688-1.538 1.118l-3.976-2.888a1 1 0 00-1.176 0l-3.976 2.888c-.783.57-1.838-.197-1.538-1.118l1.518-4.674a1 1 0 00-.363-1.118l-3.976-2.888c-.784-.57-.38-1.81.588-1.81h4.914a1 1 0 00.951-.69l1.519-4.674z"></path>
+                                    </svg>
+                                    Par défaut
+                                </button>
+                            </form>
+                            {% endif %}
+                            <form action="{{ path('app_admin_emetteurs_toggle', {id: emetteur.id}) }}" method="post" class="inline">
+                                <input type="hidden" name="_token" value="{{ csrf_token('toggle' ~ emetteur.id) }}">
+                                <button type="submit" class="inline-flex items-center px-2 py-1 text-xs font-medium {{ emetteur.actif ? 'text-red-700 bg-red-50 hover:bg-red-100' : 'text-green-700 bg-green-50 hover:bg-green-100' }} rounded">
+                                    {% if emetteur.actif %}
+                                    <svg class="w-4 h-4 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M18.364 18.364A9 9 0 005.636 5.636m12.728 12.728A9 9 0 015.636 5.636m12.728 12.728L5.636 5.636"></path>
+                                    </svg>
+                                    Désactiver
+                                    {% else %}
+                                    <svg class="w-4 h-4 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"></path>
+                                    </svg>
+                                    Activer
+                                    {% endif %}
+                                </button>
+                            </form>
+                        </div>
                     </td>
                 </tr>
                 {% else %}
                 <tr>
                     <td colspan="5" class="px-6 py-8 text-center text-gray-500">
-                        Aucun emetteur configure. <a href="{{ path('app_admin_emetteurs_new') }}" class="text-blue-600 hover:underline">Creer le premier</a>
+                        Aucun émetteur configuré. <a href="{{ path('app_admin_emetteurs_new') }}" class="text-blue-600 hover:underline">Créer le premier</a>
                     </td>
                 </tr>
                 {% endfor %}

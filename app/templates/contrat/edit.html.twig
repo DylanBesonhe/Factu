@@ -4,6 +4,15 @@
 
 {% block page_title %}Modifier contrat {{ contrat.numero }}{% endblock %}
 
+{% block breadcrumbs %}
+    {% set breadcrumbs = [
+        {label: 'Contrats', path: path('app_contrat_index')},
+        {label: contrat.numero, path: path('app_contrat_show', {id: contrat.id})},
+        {label: 'Modifier'}
+    ] %}
+    {% include 'components/_breadcrumbs.html.twig' %}
+{% endblock %}
+
 {% block page_actions %}
     <a href="{{ path('app_contrat_show', {id: contrat.id}) }}" class="px-4 py-2 text-sm text-gray-600 hover:bg-gray-100 rounded-lg">
         Annuler
@@ -34,10 +43,7 @@
                         {{ form_row(form.dateSignature, {'attr': {'class': 'w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-blue-500 focus:border-blue-500'}}) }}
                         {{ form_row(form.dateAnniversaire, {'attr': {'class': 'w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-blue-500 focus:border-blue-500'}}) }}
                     </div>
-                    <div class="grid grid-cols-2 gap-4">
-                        {{ form_row(form.nbLicences, {'attr': {'class': 'w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-blue-500 focus:border-blue-500'}}) }}
-                        {{ form_row(form.remiseGlobale, {'attr': {'class': 'w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-blue-500 focus:border-blue-500'}}) }}
-                    </div>
+                    {{ form_row(form.remiseGlobale, {'attr': {'class': 'w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-blue-500 focus:border-blue-500'}}) }}
                 </div>
 
                 <h3 class="text-lg font-medium text-gray-900 mb-4 mt-6">Options</h3>
@@ -51,8 +57,8 @@
 
         <div class="flex items-center justify-between">
             <div class="text-sm text-gray-500">
-                <p>Cree le {{ contrat.createdAt|date('d/m/Y H:i') }}</p>
-                <p>Modifie le {{ contrat.updatedAt|date('d/m/Y H:i') }}</p>
+                <p>Créé le {{ contrat.createdAt|date('d/m/Y H:i') }}</p>
+                <p>Modifié le {{ contrat.updatedAt|date('d/m/Y H:i') }}</p>
             </div>
             <button type="submit" class="px-6 py-2 text-sm text-white bg-blue-600 hover:bg-blue-700 rounded-lg">
                 Enregistrer

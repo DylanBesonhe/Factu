@@ -1,0 +1,48 @@
+{% extends 'base.html.twig' %}
+
+{% block title %}Page non trouvée - Factu{% endblock %}
+
+{% block body %}
+<div class="min-h-screen bg-gray-100 flex flex-col justify-center items-center px-4">
+    <div class="max-w-md w-full bg-white rounded-lg shadow-lg p-8 text-center">
+        {# 404 illustration #}
+        <div class="mb-6">
+            <svg class="mx-auto h-24 w-24 text-gray-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M9.172 16.172a4 4 0 015.656 0M9 10h.01M15 10h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+            </svg>
+        </div>
+
+        {# Error code #}
+        <h1 class="text-6xl font-bold text-gray-300 mb-2">404</h1>
+
+        {# Title #}
+        <h2 class="text-xl font-semibold text-gray-800 mb-4">Page non trouvée</h2>
+
+        {# Message #}
+        <p class="text-gray-600 mb-8">
+            La page que vous recherchez n'existe pas ou a été déplacée.
+        </p>
+
+        {# Actions #}
+        <div class="flex flex-col sm:flex-row gap-3 justify-center">
+            <a href="{{ path('app_dashboard') }}" class="inline-flex items-center justify-center px-5 py-2.5 text-sm font-medium text-white bg-blue-600 rounded-lg hover:bg-blue-700 focus:ring-4 focus:ring-blue-300 transition-colors">
+                <svg class="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-6 0a1 1 0 001-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 001 1m-6 0h6"></path>
+                </svg>
+                Retour à l'accueil
+            </a>
+            <button onclick="history.back()" class="inline-flex items-center justify-center px-5 py-2.5 text-sm font-medium text-gray-700 bg-white border border-gray-300 rounded-lg hover:bg-gray-50 focus:ring-4 focus:ring-gray-200 transition-colors">
+                <svg class="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 19l-7-7m0 0l7-7m-7 7h18"></path>
+                </svg>
+                Page précédente
+            </button>
+        </div>
+    </div>
+
+    {# Footer #}
+    <p class="mt-8 text-sm text-gray-500">
+        Factu - Gestion de facturation
+    </p>
+</div>
+{% endblock %}

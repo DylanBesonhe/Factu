@@ -1,8 +1,8 @@
 {% extends 'layout.html.twig' %}
 
-{% block title %}Nouvel emetteur - Factu{% endblock %}
+{% block title %}Nouvel émetteur - Factu{% endblock %}
 
-{% block page_title %}Nouvel emetteur{% endblock %}
+{% block page_title %}Nouvel émetteur{% endblock %}
 
 {% block page_actions %}
 <a href="{{ path('app_admin_emetteurs') }}" class="btn-secondary">Retour</a>
@@ -12,7 +12,7 @@
 <div class="max-w-2xl">
     <div class="bg-white rounded-lg shadow p-6">
         <p class="text-sm text-gray-600 mb-6">
-            Creez d'abord l'emetteur avec son code et nom. Vous pourrez ensuite ajouter les informations detaillees (adresse, SIREN, etc.) via une version.
+            Créez d'abord l'émetteur avec son code et nom. Vous pourrez ensuite ajouter les informations détaillées (adresse, SIREN, etc.) via une version.
         </p>
 
         {{ form_start(form, {'attr': {'class': 'space-y-6'}}) }}
@@ -28,17 +28,17 @@
             <div class="grid grid-cols-2 gap-4">
                 <div class="flex items-center space-x-2">
                     {{ form_widget(form.actif) }}
-                    <label class="text-sm text-gray-700">Emetteur actif</label>
+                    <label class="text-sm text-gray-700">Émetteur actif</label>
                 </div>
                 <div class="flex items-center space-x-2">
                     {{ form_widget(form.parDefaut) }}
-                    <label class="text-sm text-gray-700">Emetteur par defaut</label>
+                    <label class="text-sm text-gray-700">Émetteur par défaut</label>
                 </div>
             </div>
 
             <div class="flex justify-end space-x-4 pt-4 border-t">
                 <a href="{{ path('app_admin_emetteurs') }}" class="btn-secondary">Annuler</a>
-                <button type="submit" class="btn-primary">Creer et ajouter les informations</button>
+                <button type="submit" class="btn-primary">Créer et ajouter les informations</button>
             </div>
         {{ form_end(form) }}
     </div>

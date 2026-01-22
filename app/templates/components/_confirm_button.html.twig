@@ -1,0 +1,38 @@
+{#
+    Bouton avec modal de confirmation
+
+    Usage:
+    {% include 'components/_confirm_button.html.twig' with {
+        action: path('app_delete', {id: item.id}),
+        token: csrf_token('delete' ~ item.id),
+        title: 'Confirmer la suppression',
+        message: 'Voulez-vous vraiment supprimer cet élément ?',
+        label: 'Supprimer',
+        class: 'text-red-600 hover:underline',
+        confirm_text: 'Supprimer',
+        confirm_class: 'danger'
+    } %}
+#}
+
+{% set button_class = class|default('text-red-600 hover:underline') %}
+{% set button_label = label|default('Supprimer') %}
+{% set modal_title = title|default('Confirmation') %}
+{% set modal_message = message|default('Voulez-vous continuer ?') %}
+{% set modal_confirm_text = confirm_text|default('Confirmer') %}
+{% set modal_cancel_text = cancel_text|default('Annuler') %}
+{% set modal_confirm_class = confirm_class|default('danger') %}
+
+<span data-controller="modal">
+    <button type="button"
+            class="{{ button_class }}"
+            data-action="modal#open"
+            data-modal-title="{{ modal_title }}"
+            data-modal-message="{{ modal_message }}"
+            data-modal-confirm-text="{{ modal_confirm_text }}"
+            data-modal-cancel-text="{{ modal_cancel_text }}"
+            data-modal-confirm-class="{{ modal_confirm_class }}"
+            data-modal-form-action="{{ action }}"
+            data-modal-csrf-token="{{ token }}">
+        {{ button_label }}
+    </button>
+</span>

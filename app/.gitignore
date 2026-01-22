@@ -27,3 +27,12 @@ yarn-error.log
 /storage/contrats/*
 !/storage/contrats/.gitkeep
 ###< storage uploads ###
+
+###> phpunit/phpunit ###
+/phpunit.xml
+/.phpunit.cache/
+###< phpunit/phpunit ###
+
+###> claude ###
+CLAUDE.md
+###< claude ###

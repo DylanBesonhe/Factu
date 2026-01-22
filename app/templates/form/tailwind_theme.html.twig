@@ -1,5 +1,11 @@
 {% use 'form_div_layout.html.twig' %}
 
+{# Form avec loading state #}
+{% block form_start %}
+    {% set attr = attr|merge({'data-controller': (attr['data-controller']|default('') ~ ' submit')|trim}) %}
+    {{ parent() }}
+{% endblock form_start %}
+
 {# Label #}
 {% block form_label %}
 {% if label is not same as(false) %}
@@ -90,6 +96,10 @@
 
 {# Submit button #}
 {% block submit_widget %}
-    {% set attr = attr|merge({class: (attr.class|default('') ~ ' btn-primary')|trim}) %}
+    {% set attr = attr|merge({
+        class: (attr.class|default('') ~ ' btn-primary')|trim,
+        'data-submit-target': 'button',
+        'data-loading-text': attr['data-loading-text']|default('Envoi en cours...')
+    }) %}
     {{ parent() }}
 {% endblock submit_widget %}

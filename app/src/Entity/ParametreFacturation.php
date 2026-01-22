@@ -3,6 +3,7 @@
 namespace App\Entity;
 
 use App\Repository\ParametreFacturationRepository;
+use Doctrine\DBAL\Types\Types;
 use Doctrine\ORM\Mapping as ORM;
 use Symfony\Component\Validator\Constraints as Assert;
 
@@ -21,6 +22,7 @@ class ParametreFacturation
 
     #[ORM\Column(length: 50)]
     #[Assert\NotBlank(message: 'Le format de numero est obligatoire')]
+    #[Assert\Length(max: 50, maxMessage: 'Le format de numero ne peut pas depasser {{ limit }} caracteres')]
     private ?string $formatNumero = 'FA-{YYYY}-{SEQ:5}';
 
     #[ORM\Column]
@@ -37,7 +39,7 @@ class ParametreFacturation
     #[ORM\Column(length: 255, nullable: true)]
     private ?string $emailObjet = 'Facture {NUMERO} - {CLIENT}';
 
-    #[ORM\Column(type: 'text', nullable: true)]
+    #[ORM\Column(type: Types::TEXT, nullable: true)]
     private ?string $emailCorps = null;
 
     #[ORM\Column]
