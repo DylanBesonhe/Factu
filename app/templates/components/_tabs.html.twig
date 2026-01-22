@@ -12,6 +12,10 @@
     <div data-tabs-target="panel" data-tabs-for="infos" hidden>
         Content here
     </div>
+
+    SECURITE: Le champ 'icon' utilise |raw pour afficher du SVG.
+    Ne JAMAIS passer de donnees utilisateur dans ce champ.
+    Seul du contenu SVG statique defini dans les templates est autorise.
 #}
 
 {% set default_tab = default|default(tabs[0].id|default('')) %}
