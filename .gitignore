@@ -1,0 +1,15 @@
+# Folders not to commit
+_bmad/
+_bmad-output/
+.claude/
+Exemples Factures/
+
+# IDE
+.idea/
+.vscode/
+*.swp
+*.swo
+
+# OS
+.DS_Store
+Thumbs.db

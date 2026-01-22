@@ -1,0 +1,155 @@
+# BMM Workflow Status - Factu
+# Updated: 2026-01-21
+# Track: BMad Method (Greenfield)
+
+generated: "2026-01-16"
+updated: "2026-01-21"
+project: "Factu"
+project_type: "Application de facturation"
+selected_track: "bmad-method"
+field_type: "greenfield"
+workflow_path: "paths/method-greenfield.yaml"
+
+# Discovery selections (user choice)
+discovery:
+  brainstorm: true
+  research: true
+  product_brief: true
+
+# Workflow Status
+phases:
+  # Phase 1: Analysis (Optional - User Selected)
+  - phase: 1
+    name: "Analysis"
+    workflows:
+      - id: brainstorm-project
+        name: "Brainstorm"
+        status: completed
+        agent: analyst
+        command: "/bmad:bmm:workflows:brainstorming"
+        completed_date: "2026-01-20"
+
+      - id: research
+        name: "Research"
+        status: skipped
+        agent: analyst
+        command: "/bmad:bmm:workflows:research"
+
+      - id: product-brief
+        name: "Product Brief"
+        status: completed
+        agent: analyst
+        command: "/bmad:bmm:workflows:create-product-brief"
+        completed_date: "2026-01-20"
+
+  # Phase 2: Planning (Required)
+  - phase: 2
+    name: "Planning"
+    workflows:
+      - id: prd
+        name: "Product Requirements Document"
+        status: completed
+        agent: pm
+        command: "/bmad:bmm:workflows:create-prd"
+        required: true
+        completed_date: "2026-01-20"
+
+      - id: create-ux-design
+        name: "UX Design"
+        status: skipped
+        agent: ux-designer
+        command: "/bmad:bmm:workflows:create-ux-design"
+        conditional: if_has_ui
+        note: "Integre dans le PRD"
+
+  # Phase 3: Solutioning (Required)
+  - phase: 3
+    name: "Solutioning"
+    workflows:
+      - id: create-architecture
+        name: "Architecture"
+        status: completed
+        agent: architect
+        command: "/bmad:bmm:workflows:create-architecture"
+        required: true
+        completed_date: "2026-01-20"
+
+      - id: create-epics-and-stories
+        name: "Epics & Stories"
+        status: completed
+        agent: pm
+        command: "/bmad:bmm:workflows:create-epics-and-stories"
+        required: true
+        completed_date: "2026-01-20"
+
+      - id: implementation-readiness
+        name: "Implementation Readiness Check"
+        status: completed
+        agent: architect
+        command: "/bmad:bmm:workflows:implementation-readiness"
+        required: true
+        completed_date: "2026-01-21"
+
+  # Phase 4: Implementation
+  - phase: 4
+    name: "Implementation"
+    workflows:
+      - id: sprint-1
+        name: "Sprint 1 - Setup & Auth"
+        status: completed
+        agent: developer
+        stories:
+          - E0-S1 through E0-S8
+          - E1-S1 through E1-S5
+        completed_date: "2026-01-21"
+
+      - id: sprint-2
+        name: "Sprint 2 - Parametres"
+        status: pending
+        agent: developer
+        stories:
+          - E2-S1 through E2-S8
+
+      - id: sprint-3
+        name: "Sprint 3 - Clients"
+        status: pending
+        agent: developer
+        stories:
+          - E3-S1 through E3-S12
+
+      - id: sprint-4
+        name: "Sprint 4 - Contrats"
+        status: pending
+        agent: developer
+        stories:
+          - E4-S1 through E4-S14
+
+      - id: sprint-5
+        name: "Sprint 5 - Licences"
+        status: pending
+        agent: developer
+        stories:
+          - E5-S1 through E5-S12
+
+      - id: sprint-6
+        name: "Sprint 6 - Facturation"
+        status: pending
+        agent: developer
+        stories:
+          - E6-S1 through E6-S16
+
+      - id: sprint-7
+        name: "Sprint 7 - Dashboard & Finitions"
+        status: pending
+        agent: developer
+        stories:
+          - E7-S1 through E7-S8
+          - E8-S1 through E8-S5
+
+# Progress Summary
+progress:
+  total_stories: 88
+  completed_stories: 13
+  percentage: 15
+  current_sprint: 2
+  sprints_remaining: 6
