@@ -206,7 +206,7 @@ class ContratController extends AbstractController
         $ligne = $ligneRepository->find($ligneId);
 
         if ($ligne && $ligne->getContrat() === $contrat) {
-            if ($this->isCsrfTokenValid('delete_ligne' . $ligneId, $request->getPayload()->getString('_token'))) {
+            if ($this->isCsrfTokenValid('delete_ligne' . $ligneId, $request->request->get('_token'))) {
                 $entityManager->remove($ligne);
                 $entityManager->flush();
 
@@ -249,7 +249,7 @@ class ContratController extends AbstractController
         $evenement = $evenementRepository->find($evenementId);
 
         if ($evenement && $evenement->getContrat() === $contrat) {
-            if ($this->isCsrfTokenValid('delete_evenement' . $evenementId, $request->getPayload()->getString('_token'))) {
+            if ($this->isCsrfTokenValid('delete_evenement' . $evenementId, $request->request->get('_token'))) {
                 $entityManager->remove($evenement);
                 $entityManager->flush();
 
@@ -328,7 +328,7 @@ class ContratController extends AbstractController
         $fichier = $fichierRepository->find($fichierId);
 
         if ($fichier && $fichier->getContrat() === $contrat) {
-            if ($this->isCsrfTokenValid('delete_fichier' . $fichierId, $request->getPayload()->getString('_token'))) {
+            if ($this->isCsrfTokenValid('delete_fichier' . $fichierId, $request->request->get('_token'))) {
                 $filename = basename($fichier->getChemin());
                 $this->fileUploadService->delete($filename, self::UPLOAD_DIRECTORY);
 
@@ -347,7 +347,7 @@ class ContratController extends AbstractController
     {
         $newStatut = $request->request->get('statut');
 
-        if ($this->isCsrfTokenValid('change_statut' . $contrat->getId(), $request->getPayload()->getString('_token'))) {
+        if ($this->isCsrfTokenValid('change_statut' . $contrat->getId(), $request->request->get('_token'))) {
             $oldStatut = $contrat->getStatut();
             $contrat->setStatut($newStatut);
 

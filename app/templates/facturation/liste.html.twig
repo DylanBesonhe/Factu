@@ -4,28 +4,182 @@
 
 {% block page_title %}Liste des factures{% endblock %}
 
+{% block breadcrumbs %}
+    {% set breadcrumbs = [
+        {label: 'Facturation', path: path('app_facturation_workflow')},
+        {label: 'Liste'}
+    ] %}
+    {% include 'components/_breadcrumbs.html.twig' %}
+{% endblock %}
+
+{% block page_actions %}
+    <a href="{{ path('app_facturation_workflow') }}" class="px-4 py-2 text-sm text-gray-600 hover:bg-gray-100 rounded-lg">
+        Workflow
+    </a>
+{% endblock %}
+
 {% block content %}
+{# Filtres #}
+<div class="bg-white rounded-lg shadow p-4 mb-4">
+    <form method="get" class="flex flex-wrap gap-4 items-end">
+        <div class="flex-1 min-w-[200px]">
+            <label class="block text-sm font-medium text-gray-700 mb-1">Recherche</label>
+            <input type="text" name="search" value="{{ search }}" placeholder="Numero, client..."
+                class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-blue-500 focus:border-blue-500">
+        </div>
+        <div class="w-40">
+            <label class="block text-sm font-medium text-gray-700 mb-1">Statut</label>
+            <select name="statut" class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-blue-500 focus:border-blue-500">
+                <option value="">Tous</option>
+                <option value="brouillon" {{ statut == 'brouillon' ? 'selected' }}>Brouillon ({{ countByStatut.brouillon ?? 0 }})</option>
+                <option value="validee" {{ statut == 'validee' ? 'selected' }}>Validee ({{ countByStatut.validee ?? 0 }})</option>
+                <option value="envoyee" {{ statut == 'envoyee' ? 'selected' }}>Envoyee ({{ countByStatut.envoyee ?? 0 }})</option>
+                <option value="payee" {{ statut == 'payee' ? 'selected' }}>Payee ({{ countByStatut.payee ?? 0 }})</option>
+            </select>
+        </div>
+        <div>
+            <button type="submit" class="px-4 py-2 text-sm text-white bg-blue-600 hover:bg-blue-700 rounded-lg">
+                Filtrer
+            </button>
+            {% if search or statut %}
+                <a href="{{ path('app_facturation_liste') }}" class="px-4 py-2 text-sm text-gray-600 hover:bg-gray-100 rounded-lg">
+                    Reset
+                </a>
+            {% endif %}
+        </div>
+    </form>
+</div>
+
+{# Tableau #}
 <div class="bg-white rounded-lg shadow">
     <div class="overflow-x-auto">
         <table class="w-full text-sm text-left text-gray-500">
             <thead class="text-xs text-gray-700 uppercase bg-gray-50">
                 <tr>
-                    <th class="px-6 py-3">Numéro</th>
-                    <th class="px-6 py-3">Client</th>
-                    <th class="px-6 py-3">Date</th>
-                    <th class="px-6 py-3">Montant TTC</th>
+                    <th class="px-6 py-3">
+                        <a href="{{ path('app_facturation_liste', {search: search, statut: statut, sort: 'numero', direction: sort == 'numero' and direction == 'ASC' ? 'DESC' : 'ASC'}) }}" class="flex items-center gap-1">
+                            Numero
+                            {% if sort == 'numero' %}
+                                <svg class="w-4 h-4 {{ direction == 'DESC' ? 'rotate-180' : '' }}" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 15l7-7 7 7"></path></svg>
+                            {% endif %}
+                        </a>
+                    </th>
+                    <th class="px-6 py-3">
+                        <a href="{{ path('app_facturation_liste', {search: search, statut: statut, sort: 'client', direction: sort == 'client' and direction == 'ASC' ? 'DESC' : 'ASC'}) }}" class="flex items-center gap-1">
+                            Client
+                            {% if sort == 'client' %}
+                                <svg class="w-4 h-4 {{ direction == 'DESC' ? 'rotate-180' : '' }}" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 15l7-7 7 7"></path></svg>
+                            {% endif %}
+                        </a>
+                    </th>
+                    <th class="px-6 py-3">
+                        <a href="{{ path('app_facturation_liste', {search: search, statut: statut, sort: 'dateFacture', direction: sort == 'dateFacture' and direction == 'ASC' ? 'DESC' : 'ASC'}) }}" class="flex items-center gap-1">
+                            Date
+                            {% if sort == 'dateFacture' %}
+                                <svg class="w-4 h-4 {{ direction == 'DESC' ? 'rotate-180' : '' }}" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 15l7-7 7 7"></path></svg>
+                            {% endif %}
+                        </a>
+                    </th>
+                    <th class="px-6 py-3">
+                        <a href="{{ path('app_facturation_liste', {search: search, statut: statut, sort: 'dateEcheance', direction: sort == 'dateEcheance' and direction == 'ASC' ? 'DESC' : 'ASC'}) }}" class="flex items-center gap-1">
+                            Echeance
+                            {% if sort == 'dateEcheance' %}
+                                <svg class="w-4 h-4 {{ direction == 'DESC' ? 'rotate-180' : '' }}" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 15l7-7 7 7"></path></svg>
+                            {% endif %}
+                        </a>
+                    </th>
+                    <th class="px-6 py-3 text-right">
+                        <a href="{{ path('app_facturation_liste', {search: search, statut: statut, sort: 'totalTtc', direction: sort == 'totalTtc' and direction == 'ASC' ? 'DESC' : 'ASC'}) }}" class="flex items-center gap-1 justify-end">
+                            Montant TTC
+                            {% if sort == 'totalTtc' %}
+                                <svg class="w-4 h-4 {{ direction == 'DESC' ? 'rotate-180' : '' }}" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 15l7-7 7 7"></path></svg>
+                            {% endif %}
+                        </a>
+                    </th>
                     <th class="px-6 py-3">Statut</th>
                     <th class="px-6 py-3">Actions</th>
                 </tr>
             </thead>
             <tbody>
-                <tr class="bg-white border-b hover:bg-gray-50">
-                    <td class="px-6 py-4 font-medium text-gray-900" colspan="6">
-                        Aucune facture
-                    </td>
-                </tr>
+                {% for facture in factures %}
+                    <tr class="bg-white border-b hover:bg-gray-50">
+                        <td class="px-6 py-4 font-medium text-gray-900">
+                            <a href="{{ path('app_facturation_show', {id: facture.id}) }}" class="text-blue-600 hover:underline">
+                                {{ facture.numero ?? 'Brouillon #' ~ facture.id }}
+                            </a>
+                        </td>
+                        <td class="px-6 py-4">
+                            <div class="font-medium text-gray-900">{{ facture.clientRaisonSociale }}</div>
+                            <div class="text-xs text-gray-500">{{ facture.clientCode }}</div>
+                        </td>
+                        <td class="px-6 py-4">{{ facture.dateFacture|date('d/m/Y') }}</td>
+                        <td class="px-6 py-4">
+                            {% set now = "now"|date("Y-m-d") %}
+                            {% set echeance = facture.dateEcheance|date("Y-m-d") %}
+                            <span class="{{ echeance < now and facture.statut != 'payee' ? 'text-red-600 font-medium' : '' }}">
+                                {{ facture.dateEcheance|date('d/m/Y') }}
+                            </span>
+                        </td>
+                        <td class="px-6 py-4 text-right font-medium">{{ facture.totalTtc|number_format(2, ',', ' ') }} &euro;</td>
+                        <td class="px-6 py-4">
+                            <span class="px-2 py-1 text-xs font-medium {{ facture.statutColor }} rounded-full">
+                                {{ facture.statutLabel }}
+                            </span>
+                        </td>
+                        <td class="px-6 py-4">
+                            <a href="{{ path('app_facturation_show', {id: facture.id}) }}" class="text-blue-600 hover:text-blue-900 mr-2" title="Voir">
+                                <svg class="w-4 h-4 inline" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"></path>
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z"></path>
+                                </svg>
+                            </a>
+                            <a href="{{ path('app_facturation_pdf', {id: facture.id}) }}" target="_blank" class="text-gray-600 hover:text-gray-900 mr-2" title="Telecharger PDF">
+                                <svg class="w-4 h-4 inline" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 10v6m0 0l-3-3m3 3l3-3m2 8H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"></path>
+                                </svg>
+                            </a>
+                            {% if facture.isEditable %}
+                                <a href="{{ path('app_facturation_edit', {id: facture.id}) }}" class="text-gray-600 hover:text-gray-900" title="Modifier">
+                                    <svg class="w-4 h-4 inline" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"></path>
+                                    </svg>
+                                </a>
+                            {% endif %}
+                        </td>
+                    </tr>
+                {% else %}
+                    <tr class="bg-white border-b hover:bg-gray-50">
+                        <td class="px-6 py-4 font-medium text-gray-500 text-center" colspan="7">
+                            Aucune facture
+                        </td>
+                    </tr>
+                {% endfor %}
             </tbody>
         </table>
     </div>
+
+    {# Pagination #}
+    {% if total > limit %}
+        {% set totalPages = (total / limit)|round(0, 'ceil') %}
+        <div class="px-6 py-4 border-t border-gray-200 flex items-center justify-between">
+            <div class="text-sm text-gray-500">
+                Page {{ page }} sur {{ totalPages }} ({{ total }} resultats)
+            </div>
+            <div class="flex gap-2">
+                {% if page > 1 %}
+                    <a href="{{ path('app_facturation_liste', {search: search, statut: statut, sort: sort, direction: direction, page: page - 1}) }}"
+                       class="px-3 py-1 text-sm border border-gray-300 rounded hover:bg-gray-50">
+                        Precedent
+                    </a>
+                {% endif %}
+                {% if page < totalPages %}
+                    <a href="{{ path('app_facturation_liste', {search: search, statut: statut, sort: sort, direction: direction, page: page + 1}) }}"
+                       class="px-3 py-1 text-sm border border-gray-300 rounded hover:bg-gray-50">
+                        Suivant
+                    </a>
+                {% endif %}
+            </div>
+        </div>
+    {% endif %}
 </div>
 {% endblock %}

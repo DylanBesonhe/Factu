@@ -1,0 +1,403 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <title>Facture {{ facture.numero ?? 'Brouillon' }}</title>
+    <style>
+        @page {
+            margin: 15mm;
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'DejaVu Sans', sans-serif;
+            font-size: 10pt;
+            line-height: 1.4;
+            color: #333;
+        }
+
+        .header {
+            display: table;
+            width: 100%;
+            margin-bottom: 20px;
+        }
+
+        .header-left {
+            display: table-cell;
+            width: 60%;
+            vertical-align: top;
+        }
+
+        .header-right {
+            display: table-cell;
+            width: 40%;
+            vertical-align: top;
+            text-align: right;
+        }
+
+        .company-name {
+            font-size: 16pt;
+            font-weight: bold;
+            color: #1a1a1a;
+            margin-bottom: 5px;
+        }
+
+        .company-info {
+            font-size: 9pt;
+            color: #666;
+            line-height: 1.5;
+        }
+
+        .invoice-title {
+            font-size: 20pt;
+            font-weight: bold;
+            color: #1a1a1a;
+            margin-bottom: 10px;
+        }
+
+        .invoice-number {
+            font-size: 12pt;
+            font-weight: bold;
+            color: #333;
+        }
+
+        .invoice-date {
+            font-size: 10pt;
+            color: #666;
+            margin-top: 5px;
+        }
+
+        .section {
+            margin-bottom: 20px;
+        }
+
+        .section-title {
+            font-size: 9pt;
+            font-weight: bold;
+            text-transform: uppercase;
+            color: #666;
+            margin-bottom: 8px;
+            padding-bottom: 3px;
+            border-bottom: 1px solid #ddd;
+        }
+
+        .client-box {
+            background-color: #f9f9f9;
+            padding: 15px;
+            border: 1px solid #e0e0e0;
+        }
+
+        .client-name {
+            font-size: 12pt;
+            font-weight: bold;
+            margin-bottom: 5px;
+        }
+
+        .client-info {
+            font-size: 9pt;
+            color: #666;
+            white-space: pre-line;
+        }
+
+        .period-box {
+            background-color: #f5f5f5;
+            padding: 10px 15px;
+            border: 1px solid #e0e0e0;
+            font-size: 10pt;
+        }
+
+        .lines-table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-bottom: 20px;
+        }
+
+        .lines-table th {
+            background-color: #f5f5f5;
+            border: 1px solid #ddd;
+            padding: 8px 10px;
+            font-size: 9pt;
+            font-weight: bold;
+            text-align: left;
+        }
+
+        .lines-table th.text-right {
+            text-align: right;
+        }
+
+        .lines-table td {
+            border: 1px solid #ddd;
+            padding: 8px 10px;
+            font-size: 9pt;
+            vertical-align: top;
+        }
+
+        .lines-table td.text-right {
+            text-align: right;
+        }
+
+        .line-description {
+            font-size: 8pt;
+            color: #666;
+            margin-top: 3px;
+        }
+
+        .totals-section {
+            display: table;
+            width: 100%;
+            margin-bottom: 20px;
+        }
+
+        .totals-spacer {
+            display: table-cell;
+            width: 60%;
+        }
+
+        .totals-box {
+            display: table-cell;
+            width: 40%;
+        }
+
+        .totals-table {
+            width: 100%;
+            border-collapse: collapse;
+        }
+
+        .totals-table td {
+            padding: 6px 10px;
+            font-size: 10pt;
+        }
+
+        .totals-table .label {
+            text-align: right;
+            color: #666;
+        }
+
+        .totals-table .value {
+            text-align: right;
+            font-weight: bold;
+        }
+
+        .totals-table .total-ttc td {
+            background-color: #f5f5f5;
+            font-size: 12pt;
+            border-top: 2px solid #333;
+        }
+
+        .payment-box {
+            background-color: #f9f9f9;
+            padding: 15px;
+            border: 1px solid #e0e0e0;
+            margin-bottom: 20px;
+        }
+
+        .payment-box h4 {
+            font-size: 10pt;
+            font-weight: bold;
+            margin-bottom: 10px;
+        }
+
+        .payment-info {
+            display: table;
+            width: 100%;
+        }
+
+        .payment-col {
+            display: table-cell;
+            width: 50%;
+            vertical-align: top;
+            font-size: 9pt;
+        }
+
+        .payment-label {
+            color: #666;
+            margin-bottom: 2px;
+        }
+
+        .payment-value {
+            font-weight: bold;
+            margin-bottom: 8px;
+        }
+
+        .legal-mentions {
+            font-size: 8pt;
+            color: #666;
+            line-height: 1.5;
+            padding-top: 15px;
+            border-top: 1px solid #ddd;
+            white-space: pre-line;
+        }
+
+        .draft-watermark {
+            position: fixed;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%) rotate(-45deg);
+            font-size: 80pt;
+            color: rgba(200, 200, 200, 0.3);
+            font-weight: bold;
+            z-index: -1;
+        }
+    </style>
+</head>
+<body>
+    {% if facture.statut == 'brouillon' %}
+    <div class="draft-watermark">BROUILLON</div>
+    {% endif %}
+
+    {# En-tete #}
+    <div class="header">
+        <div class="header-left">
+            <div class="company-name">{{ facture.emetteurRaisonSociale }}</div>
+            <div class="company-info">
+                {{ facture.emetteurAdresse|nl2br }}
+                {% if facture.emetteurSiren %}
+                <br>SIREN : {{ facture.emetteurSirenFormatted }}
+                {% endif %}
+                {% if facture.emetteurTva %}
+                <br>N° TVA : {{ facture.emetteurTva }}
+                {% endif %}
+            </div>
+        </div>
+        <div class="header-right">
+            <div class="invoice-title">FACTURE</div>
+            <div class="invoice-number">N° {{ facture.numero ?? 'BROUILLON' }}</div>
+            <div class="invoice-date">
+                Date : {{ facture.dateFacture|date('d/m/Y') }}
+            </div>
+        </div>
+    </div>
+
+    {# Destinataire #}
+    <div class="section">
+        <div class="section-title">Destinataire</div>
+        <div class="client-box">
+            <div class="client-name">{{ facture.clientRaisonSociale }}</div>
+            <div class="client-info">
+                {% if facture.clientAdresse %}{{ facture.clientAdresse }}{% endif %}
+                {% if facture.clientSiren %}
+                <br>SIREN : {{ facture.clientSirenFormatted }}
+                {% endif %}
+            </div>
+        </div>
+    </div>
+
+    {# Periode #}
+    <div class="section">
+        <div class="period-box">
+            <strong>Periode :</strong> du {{ facture.periodeDebut|date('d/m/Y') }} au {{ facture.periodeFin|date('d/m/Y') }}
+        </div>
+    </div>
+
+    {# Lignes de facture #}
+    <div class="section">
+        <table class="lines-table">
+            <thead>
+                <tr>
+                    <th style="width: 40%;">Designation</th>
+                    <th class="text-right" style="width: 10%;">Qte</th>
+                    <th class="text-right" style="width: 15%;">P.U. HT</th>
+                    <th class="text-right" style="width: 10%;">Remise</th>
+                    <th class="text-right" style="width: 10%;">TVA</th>
+                    <th class="text-right" style="width: 15%;">Total HT</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for ligne in facture.lignes %}
+                <tr>
+                    <td>
+                        {{ ligne.designation }}
+                        {% if ligne.description %}
+                        <div class="line-description">{{ ligne.description }}</div>
+                        {% endif %}
+                    </td>
+                    <td class="text-right">{{ ligne.quantite }}</td>
+                    <td class="text-right">{{ ligne.prixUnitaire|number_format(2, ',', ' ') }} &euro;</td>
+                    <td class="text-right">
+                        {% if ligne.remise %}
+                            {{ ligne.remise|number_format(2, ',', ' ') }}%
+                        {% else %}
+                            -
+                        {% endif %}
+                    </td>
+                    <td class="text-right">{{ ligne.tauxTva|number_format(2, ',', ' ') }}%</td>
+                    <td class="text-right">{{ ligne.totalHt|number_format(2, ',', ' ') }} &euro;</td>
+                </tr>
+                {% else %}
+                <tr>
+                    <td colspan="6" style="text-align: center; color: #999;">Aucune ligne</td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+
+    {# Totaux #}
+    <div class="totals-section">
+        <div class="totals-spacer"></div>
+        <div class="totals-box">
+            <table class="totals-table">
+                <tr>
+                    <td class="label">Total HT</td>
+                    <td class="value">{{ facture.totalHt|number_format(2, ',', ' ') }} &euro;</td>
+                </tr>
+                {% if facture.remiseGlobale %}
+                <tr>
+                    <td class="label">Remise globale ({{ facture.remiseGlobale|number_format(2, ',', ' ') }}%)</td>
+                    <td class="value">incluse</td>
+                </tr>
+                {% endif %}
+                <tr>
+                    <td class="label">TVA</td>
+                    <td class="value">{{ facture.totalTva|number_format(2, ',', ' ') }} &euro;</td>
+                </tr>
+                <tr class="total-ttc">
+                    <td class="label">Total TTC</td>
+                    <td class="value">{{ facture.totalTtc|number_format(2, ',', ' ') }} &euro;</td>
+                </tr>
+            </table>
+        </div>
+    </div>
+
+    {# Conditions de paiement #}
+    <div class="payment-box">
+        <h4>Conditions de paiement</h4>
+        <div class="payment-info">
+            <div class="payment-col">
+                <div class="payment-label">Date d'echeance</div>
+                <div class="payment-value">{{ facture.dateEcheance|date('d/m/Y') }}</div>
+            </div>
+            <div class="payment-col">
+                {% if facture.emetteurIban %}
+                <div class="payment-label">IBAN</div>
+                <div class="payment-value">{{ facture.emetteurIbanFormatted }}</div>
+                {% endif %}
+                {% if facture.emetteurBic %}
+                <div class="payment-label">BIC</div>
+                <div class="payment-value">{{ facture.emetteurBic }}</div>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+
+    {# Commentaire #}
+    {% if facture.commentaire %}
+    <div class="section">
+        <div class="section-title">Commentaire</div>
+        <p style="font-size: 9pt; color: #666;">{{ facture.commentaire|nl2br }}</p>
+    </div>
+    {% endif %}
+
+    {# Mentions legales #}
+    {% if facture.mentionsLegales %}
+    <div class="legal-mentions">
+        {{ facture.mentionsLegales }}
+    </div>
+    {% endif %}
+</body>
+</html>

@@ -1,0 +1,372 @@
+{% extends 'layout.html.twig' %}
+
+{% set numeroDisplay = facture.numero ?? 'Brouillon #' ~ facture.id %}
+
+{% block title %}Facture {{ numeroDisplay }} - Factu{% endblock %}
+
+{% block page_title %}Facture {{ numeroDisplay }}{% endblock %}
+
+{% block breadcrumbs %}
+    {% set breadcrumbs = [
+        {label: 'Facturation', path: path('app_facturation_workflow')},
+        {label: numeroDisplay}
+    ] %}
+    {% include 'components/_breadcrumbs.html.twig' %}
+{% endblock %}
+
+{% block page_actions %}
+    {% if facture.statut == 'brouillon' %}
+        <form method="post" action="{{ path('app_facturation_valider', {id: facture.id}) }}" class="inline" onsubmit="return confirm('Valider cette facture ?')">
+            <input type="hidden" name="_token" value="{{ csrf_token('valider' ~ facture.id) }}">
+            <button type="submit" class="px-4 py-2 text-sm text-white bg-blue-600 hover:bg-blue-700 rounded-lg">
+                Valider
+            </button>
+        </form>
+        <a href="{{ path('app_facturation_edit', {id: facture.id}) }}" class="px-4 py-2 text-sm text-gray-600 hover:bg-gray-100 rounded-lg">
+            Modifier
+        </a>
+        <form method="post" action="{{ path('app_facturation_supprimer', {id: facture.id}) }}" class="inline" onsubmit="return confirm('Supprimer cette facture ?')">
+            <input type="hidden" name="_token" value="{{ csrf_token('supprimer' ~ facture.id) }}">
+            <button type="submit" class="px-4 py-2 text-sm text-red-600 hover:bg-red-50 rounded-lg">
+                Supprimer
+            </button>
+        </form>
+    {% elseif facture.statut == 'validee' %}
+        <form method="post" action="{{ path('app_facturation_envoyer', {id: facture.id}) }}" class="inline">
+            <input type="hidden" name="_token" value="{{ csrf_token('envoyer' ~ facture.id) }}">
+            <button type="submit" class="px-4 py-2 text-sm text-white bg-green-600 hover:bg-green-700 rounded-lg">
+                Marquer envoyee
+            </button>
+        </form>
+        <form method="post" action="{{ path('app_facturation_payer', {id: facture.id}) }}" class="inline">
+            <input type="hidden" name="_token" value="{{ csrf_token('payer' ~ facture.id) }}">
+            <button type="submit" class="px-4 py-2 text-sm text-white bg-purple-600 hover:bg-purple-700 rounded-lg">
+                Marquer payee
+            </button>
+        </form>
+    {% elseif facture.statut == 'envoyee' %}
+        <form method="post" action="{{ path('app_facturation_payer', {id: facture.id}) }}" class="inline">
+            <input type="hidden" name="_token" value="{{ csrf_token('payer' ~ facture.id) }}">
+            <button type="submit" class="px-4 py-2 text-sm text-white bg-purple-600 hover:bg-purple-700 rounded-lg">
+                Marquer payee
+            </button>
+        </form>
+    {% endif %}
+    <a href="{{ path('app_facturation_pdf', {id: facture.id}) }}"
+       target="_blank"
+       title="Telecharger le PDF"
+       class="px-4 py-2 text-sm text-white bg-gray-600 hover:bg-gray-700 rounded-lg flex items-center gap-2">
+        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                  d="M12 10v6m0 0l-3-3m3 3l3-3m2 8H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"/>
+        </svg>
+        PDF
+    </a>
+    <a href="{{ path('app_facturation_workflow') }}" class="px-4 py-2 text-sm text-gray-600 hover:bg-gray-100 rounded-lg">
+        Retour
+    </a>
+{% endblock %}
+
+{% block content %}
+<div x-data="{ activeTab: 'infos' }">
+    {# Tabs navigation #}
+    <div class="border-b border-gray-200 mb-4">
+        <nav class="flex gap-4">
+            <button @click="activeTab = 'infos'" :class="activeTab === 'infos' ? 'border-blue-500 text-blue-600' : 'border-transparent text-gray-500 hover:text-gray-700'" class="py-2 px-1 border-b-2 font-medium text-sm">
+                Informations
+            </button>
+            <button @click="activeTab = 'lignes'" :class="activeTab === 'lignes' ? 'border-blue-500 text-blue-600' : 'border-transparent text-gray-500 hover:text-gray-700'" class="py-2 px-1 border-b-2 font-medium text-sm">
+                Lignes ({{ facture.lignes|length }})
+            </button>
+            <button @click="activeTab = 'actions'" :class="activeTab === 'actions' ? 'border-blue-500 text-blue-600' : 'border-transparent text-gray-500 hover:text-gray-700'" class="py-2 px-1 border-b-2 font-medium text-sm">
+                Historique
+            </button>
+        </nav>
+    </div>
+
+    {# Tab: Informations #}
+    <div x-show="activeTab === 'infos'" class="grid grid-cols-1 md:grid-cols-2 gap-4">
+        <div class="bg-white rounded-lg shadow p-6">
+            <h3 class="text-lg font-medium text-gray-900 mb-4">Informations de la facture</h3>
+            <dl class="space-y-3">
+                <div class="flex justify-between">
+                    <dt class="text-gray-500">Numero</dt>
+                    <dd class="font-mono text-gray-900">{{ facture.numero ?? 'Non attribue (brouillon)' }}</dd>
+                </div>
+                <div class="flex justify-between">
+                    <dt class="text-gray-500">Statut</dt>
+                    <dd>
+                        <span class="px-2 py-1 text-xs font-medium {{ facture.statutColor }} rounded-full">
+                            {{ facture.statutLabel }}
+                        </span>
+                    </dd>
+                </div>
+                <div class="flex justify-between">
+                    <dt class="text-gray-500">Contrat</dt>
+                    <dd>
+                        <a href="{{ path('app_contrat_show', {id: facture.contrat.id}) }}" class="text-blue-600 hover:underline">
+                            {{ facture.contrat.numero }}
+                        </a>
+                    </dd>
+                </div>
+                <div class="flex justify-between">
+                    <dt class="text-gray-500">Date de facture</dt>
+                    <dd class="text-gray-900">{{ facture.dateFacture|date('d/m/Y') }}</dd>
+                </div>
+                <div class="flex justify-between">
+                    <dt class="text-gray-500">Date d'echeance</dt>
+                    <dd class="text-gray-900">{{ facture.dateEcheance|date('d/m/Y') }}</dd>
+                </div>
+                <div class="flex justify-between">
+                    <dt class="text-gray-500">Periode</dt>
+                    <dd class="text-gray-900">{{ facture.periodeDebut|date('d/m/Y') }} - {{ facture.periodeFin|date('d/m/Y') }}</dd>
+                </div>
+            </dl>
+        </div>
+
+        <div class="bg-white rounded-lg shadow p-6">
+            <h3 class="text-lg font-medium text-gray-900 mb-4">Client</h3>
+            <dl class="space-y-3">
+                <div class="flex justify-between">
+                    <dt class="text-gray-500">Code</dt>
+                    <dd class="font-mono text-gray-900">{{ facture.clientCode }}</dd>
+                </div>
+                <div class="flex justify-between">
+                    <dt class="text-gray-500">Raison sociale</dt>
+                    <dd class="text-gray-900">{{ facture.clientRaisonSociale }}</dd>
+                </div>
+                {% if facture.clientSiren %}
+                <div class="flex justify-between">
+                    <dt class="text-gray-500">SIREN</dt>
+                    <dd class="font-mono text-gray-900">{{ facture.clientSirenFormatted }}</dd>
+                </div>
+                {% endif %}
+                {% if facture.clientAdresse %}
+                <div>
+                    <dt class="text-gray-500 mb-1">Adresse</dt>
+                    <dd class="text-gray-900 text-sm whitespace-pre-line">{{ facture.clientAdresse }}</dd>
+                </div>
+                {% endif %}
+            </dl>
+        </div>
+
+        <div class="bg-white rounded-lg shadow p-6">
+            <h3 class="text-lg font-medium text-gray-900 mb-4">Emetteur</h3>
+            <dl class="space-y-3">
+                <div class="flex justify-between">
+                    <dt class="text-gray-500">Raison sociale</dt>
+                    <dd class="text-gray-900">{{ facture.emetteurRaisonSociale }}</dd>
+                </div>
+                <div class="flex justify-between">
+                    <dt class="text-gray-500">SIREN</dt>
+                    <dd class="font-mono text-gray-900">{{ facture.emetteurSirenFormatted }}</dd>
+                </div>
+                {% if facture.emetteurTva %}
+                <div class="flex justify-between">
+                    <dt class="text-gray-500">N° TVA</dt>
+                    <dd class="font-mono text-gray-900">{{ facture.emetteurTva }}</dd>
+                </div>
+                {% endif %}
+                {% if facture.emetteurIban %}
+                <div class="flex justify-between">
+                    <dt class="text-gray-500">IBAN</dt>
+                    <dd class="font-mono text-gray-900 text-sm">{{ facture.emetteurIbanFormatted }}</dd>
+                </div>
+                {% endif %}
+                {% if facture.emetteurBic %}
+                <div class="flex justify-between">
+                    <dt class="text-gray-500">BIC</dt>
+                    <dd class="font-mono text-gray-900">{{ facture.emetteurBic }}</dd>
+                </div>
+                {% endif %}
+                {% if facture.emetteurAdresse %}
+                <div>
+                    <dt class="text-gray-500 mb-1">Adresse</dt>
+                    <dd class="text-gray-900 text-sm whitespace-pre-line">{{ facture.emetteurAdresse }}</dd>
+                </div>
+                {% endif %}
+            </dl>
+        </div>
+
+        <div class="bg-white rounded-lg shadow p-6">
+            <h3 class="text-lg font-medium text-gray-900 mb-4">Montants</h3>
+            <dl class="space-y-3">
+                <div class="flex justify-between">
+                    <dt class="text-gray-500">Total HT</dt>
+                    <dd class="font-medium text-gray-900">{{ facture.totalHt|number_format(2, ',', ' ') }} &euro;</dd>
+                </div>
+                {% if facture.remiseGlobale %}
+                <div class="flex justify-between">
+                    <dt class="text-gray-500">Remise globale</dt>
+                    <dd class="text-gray-900">{{ facture.remiseGlobale|number_format(2, ',', ' ') }}%</dd>
+                </div>
+                {% endif %}
+                <div class="flex justify-between">
+                    <dt class="text-gray-500">Total TVA</dt>
+                    <dd class="text-gray-900">{{ facture.totalTva|number_format(2, ',', ' ') }} &euro;</dd>
+                </div>
+                <div class="flex justify-between border-t pt-3">
+                    <dt class="text-gray-700 font-medium">Total TTC</dt>
+                    <dd class="font-bold text-gray-900">{{ facture.totalTtc|number_format(2, ',', ' ') }} &euro;</dd>
+                </div>
+            </dl>
+        </div>
+
+        {% if facture.commentaire or facture.mentionsLegales %}
+        <div class="bg-white rounded-lg shadow p-6 md:col-span-2">
+            <h3 class="text-lg font-medium text-gray-900 mb-4">Notes et mentions</h3>
+            {% if facture.commentaire %}
+            <div class="mb-4">
+                <h4 class="text-sm font-medium text-gray-700 mb-1">Commentaire</h4>
+                <p class="text-gray-900 whitespace-pre-line">{{ facture.commentaire }}</p>
+            </div>
+            {% endif %}
+            {% if facture.mentionsLegales %}
+            <div>
+                <h4 class="text-sm font-medium text-gray-700 mb-1">Mentions legales</h4>
+                <p class="text-gray-600 text-sm whitespace-pre-line">{{ facture.mentionsLegales }}</p>
+            </div>
+            {% endif %}
+        </div>
+        {% endif %}
+    </div>
+
+    {# Tab: Lignes #}
+    <div x-show="activeTab === 'lignes'" class="bg-white rounded-lg shadow">
+        <div class="p-4 border-b border-gray-200 flex justify-between items-center">
+            <h3 class="text-lg font-medium text-gray-900">Lignes de la facture</h3>
+            {% if facture.isEditable %}
+                <a href="{{ path('app_facturation_ligne_new', {id: facture.id}) }}" class="px-4 py-2 text-sm text-white bg-blue-600 hover:bg-blue-700 rounded-lg">
+                    Ajouter une ligne
+                </a>
+            {% endif %}
+        </div>
+        <div class="overflow-x-auto">
+            <table class="w-full text-sm text-left text-gray-500">
+                <thead class="text-xs text-gray-700 uppercase bg-gray-50">
+                    <tr>
+                        <th class="px-4 py-3">Designation</th>
+                        <th class="px-4 py-3 text-right">Qte</th>
+                        <th class="px-4 py-3 text-right">P.U. HT</th>
+                        <th class="px-4 py-3 text-right">Remise</th>
+                        <th class="px-4 py-3 text-right">TVA</th>
+                        <th class="px-4 py-3 text-right">Total HT</th>
+                        {% if facture.isEditable %}
+                        <th class="px-4 py-3">Actions</th>
+                        {% endif %}
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for ligne in facture.lignes %}
+                        <tr class="bg-white border-b hover:bg-gray-50">
+                            <td class="px-4 py-3">
+                                <div class="font-medium text-gray-900">{{ ligne.designation }}</div>
+                                {% if ligne.description %}
+                                    <div class="text-xs text-gray-500">{{ ligne.description }}</div>
+                                {% endif %}
+                            </td>
+                            <td class="px-4 py-3 text-right">{{ ligne.quantite }}</td>
+                            <td class="px-4 py-3 text-right">{{ ligne.prixUnitaire|number_format(2, ',', ' ') }} &euro;</td>
+                            <td class="px-4 py-3 text-right">
+                                {% if ligne.remise %}
+                                    {{ ligne.remise|number_format(2, ',', ' ') }}%
+                                {% else %}
+                                    -
+                                {% endif %}
+                            </td>
+                            <td class="px-4 py-3 text-right">{{ ligne.tauxTva|number_format(2, ',', ' ') }}%</td>
+                            <td class="px-4 py-3 text-right font-medium">{{ ligne.totalHt|number_format(2, ',', ' ') }} &euro;</td>
+                            {% if facture.isEditable %}
+                            <td class="px-4 py-3">
+                                <a href="{{ path('app_facturation_ligne_edit', {id: facture.id, ligneId: ligne.id}) }}" class="text-blue-600 hover:text-blue-900 mr-2" title="Modifier">
+                                    <svg class="w-4 h-4 inline" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"></path>
+                                    </svg>
+                                </a>
+                                <form method="post" action="{{ path('app_facturation_ligne_supprimer', {id: facture.id, ligneId: ligne.id}) }}" class="inline" onsubmit="return confirm('Supprimer cette ligne ?')">
+                                    <input type="hidden" name="_token" value="{{ csrf_token('supprimer_ligne' ~ ligne.id) }}">
+                                    <button type="submit" class="text-red-600 hover:text-red-900" title="Supprimer">
+                                        <svg class="w-4 h-4 inline" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"></path>
+                                        </svg>
+                                    </button>
+                                </form>
+                            </td>
+                            {% endif %}
+                        </tr>
+                    {% else %}
+                        <tr>
+                            <td colspan="{{ facture.isEditable ? 7 : 6 }}" class="px-4 py-3 text-center text-gray-500">Aucune ligne</td>
+                        </tr>
+                    {% endfor %}
+                </tbody>
+                {% if facture.lignes|length > 0 %}
+                <tfoot class="bg-gray-50">
+                    <tr>
+                        <td colspan="5" class="px-4 py-3 text-right font-medium">Total HT</td>
+                        <td class="px-4 py-3 text-right font-bold">{{ facture.totalHt|number_format(2, ',', ' ') }} &euro;</td>
+                        {% if facture.isEditable %}<td></td>{% endif %}
+                    </tr>
+                    <tr>
+                        <td colspan="5" class="px-4 py-3 text-right font-medium">Total TVA</td>
+                        <td class="px-4 py-3 text-right">{{ facture.totalTva|number_format(2, ',', ' ') }} &euro;</td>
+                        {% if facture.isEditable %}<td></td>{% endif %}
+                    </tr>
+                    <tr>
+                        <td colspan="5" class="px-4 py-3 text-right font-medium text-lg">Total TTC</td>
+                        <td class="px-4 py-3 text-right font-bold text-lg">{{ facture.totalTtc|number_format(2, ',', ' ') }} &euro;</td>
+                        {% if facture.isEditable %}<td></td>{% endif %}
+                    </tr>
+                </tfoot>
+                {% endif %}
+            </table>
+        </div>
+    </div>
+
+    {# Tab: Historique #}
+    <div x-show="activeTab === 'actions'" class="bg-white rounded-lg shadow p-6">
+        <h3 class="text-lg font-medium text-gray-900 mb-4">Historique des transitions</h3>
+        <div class="space-y-4">
+            <div class="flex items-start gap-4">
+                <div class="w-24 text-sm text-gray-500">Creation</div>
+                <div>
+                    <p class="text-gray-900">Facture creee en brouillon</p>
+                    <p class="text-sm text-gray-500">{{ facture.createdAt|date('d/m/Y H:i') }}</p>
+                </div>
+            </div>
+            {% if facture.dateValidation %}
+            <div class="flex items-start gap-4">
+                <div class="w-24 text-sm text-gray-500">Validation</div>
+                <div>
+                    <p class="text-gray-900">Facture validee</p>
+                    <p class="text-sm text-gray-500">{{ facture.dateValidation|date('d/m/Y H:i') }}</p>
+                </div>
+            </div>
+            {% endif %}
+            {% if facture.dateEnvoi %}
+            <div class="flex items-start gap-4">
+                <div class="w-24 text-sm text-gray-500">Envoi</div>
+                <div>
+                    <p class="text-gray-900">Facture marquee comme envoyee</p>
+                    <p class="text-sm text-gray-500">{{ facture.dateEnvoi|date('d/m/Y H:i') }}</p>
+                </div>
+            </div>
+            {% endif %}
+            {% if facture.datePaiement %}
+            <div class="flex items-start gap-4">
+                <div class="w-24 text-sm text-gray-500">Paiement</div>
+                <div>
+                    <p class="text-gray-900">Facture marquee comme payee</p>
+                    <p class="text-sm text-gray-500">{{ facture.datePaiement|date('d/m/Y H:i') }}</p>
+                </div>
+            </div>
+            {% endif %}
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block javascripts %}
+{{ parent() }}
+<script src="https://cdn.jsdelivr.net/npm/alpinejs@3.x.x/dist/cdn.min.js" defer></script>
+{% endblock %}

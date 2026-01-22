@@ -1,0 +1,63 @@
+{% extends 'layout.html.twig' %}
+
+{% block title %}{{ mode == 'new' ? 'Ajouter une ligne' : 'Modifier la ligne' }} - Facture {{ facture.numero }} - Factu{% endblock %}
+
+{% block page_title %}{{ mode == 'new' ? 'Ajouter une ligne' : 'Modifier la ligne' }}{% endblock %}
+
+{% block breadcrumbs %}
+    {% set breadcrumbs = [
+        {label: 'Facturation', path: path('app_facturation_workflow')},
+        {label: facture.numero, path: path('app_facturation_show', {id: facture.id})},
+        {label: mode == 'new' ? 'Nouvelle ligne' : 'Modifier ligne'}
+    ] %}
+    {% include 'components/_breadcrumbs.html.twig' %}
+{% endblock %}
+
+{% block content %}
+<div class="max-w-2xl">
+    <div class="bg-white rounded-lg shadow p-6">
+        <h2 class="text-lg font-medium text-gray-900 mb-4">
+            {{ mode == 'new' ? 'Nouvelle ligne de facture' : 'Modifier la ligne' }}
+        </h2>
+
+        {{ form_start(form) }}
+            <div class="space-y-4">
+                <div>
+                    {{ form_row(form.designation) }}
+                </div>
+
+                <div>
+                    {{ form_row(form.description) }}
+                </div>
+
+                <div class="grid grid-cols-2 gap-4">
+                    <div>
+                        {{ form_row(form.quantite) }}
+                    </div>
+                    <div>
+                        {{ form_row(form.prixUnitaire) }}
+                    </div>
+                </div>
+
+                <div class="grid grid-cols-2 gap-4">
+                    <div>
+                        {{ form_row(form.remise) }}
+                    </div>
+                    <div>
+                        {{ form_row(form.tauxTva) }}
+                    </div>
+                </div>
+            </div>
+
+            <div class="flex justify-end gap-4 mt-6 pt-4 border-t">
+                <a href="{{ path('app_facturation_show', {id: facture.id}) }}" class="px-4 py-2 text-sm text-gray-600 hover:bg-gray-100 rounded-lg">
+                    Annuler
+                </a>
+                <button type="submit" class="px-4 py-2 text-sm text-white bg-blue-600 hover:bg-blue-700 rounded-lg">
+                    {{ mode == 'new' ? 'Ajouter' : 'Enregistrer' }}
+                </button>
+            </div>
+        {{ form_end(form) }}
+    </div>
+</div>
+{% endblock %}

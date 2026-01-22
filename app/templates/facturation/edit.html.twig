@@ -1,0 +1,57 @@
+{% extends 'layout.html.twig' %}
+
+{% block title %}Modifier facture {{ facture.numero }} - Factu{% endblock %}
+
+{% block page_title %}Modifier facture {{ facture.numero }}{% endblock %}
+
+{% block breadcrumbs %}
+    {% set breadcrumbs = [
+        {label: 'Facturation', path: path('app_facturation_workflow')},
+        {label: facture.numero, path: path('app_facturation_show', {id: facture.id})},
+        {label: 'Modifier'}
+    ] %}
+    {% include 'components/_breadcrumbs.html.twig' %}
+{% endblock %}
+
+{% block content %}
+<div class="max-w-3xl">
+    <div class="bg-white rounded-lg shadow p-6">
+        {{ form_start(form) }}
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-4 mb-6">
+                <div>
+                    {{ form_row(form.dateFacture) }}
+                </div>
+                <div>
+                    {{ form_row(form.dateEcheance) }}
+                </div>
+                <div>
+                    {{ form_row(form.periodeDebut) }}
+                </div>
+                <div>
+                    {{ form_row(form.periodeFin) }}
+                </div>
+                <div class="md:col-span-2">
+                    {{ form_row(form.remiseGlobale) }}
+                </div>
+            </div>
+
+            <div class="mb-6">
+                {{ form_row(form.commentaire) }}
+            </div>
+
+            <div class="mb-6">
+                {{ form_row(form.mentionsLegales) }}
+            </div>
+
+            <div class="flex justify-end gap-4">
+                <a href="{{ path('app_facturation_show', {id: facture.id}) }}" class="px-4 py-2 text-sm text-gray-600 hover:bg-gray-100 rounded-lg">
+                    Annuler
+                </a>
+                <button type="submit" class="px-4 py-2 text-sm text-white bg-blue-600 hover:bg-blue-700 rounded-lg">
+                    Enregistrer
+                </button>
+            </div>
+        {{ form_end(form) }}
+    </div>
+</div>
+{% endblock %}

@@ -78,6 +78,11 @@ class ContratType extends AbstractType
                 'widget' => 'single_text',
                 'attr' => ['class' => 'w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-blue-500 focus:border-blue-500'],
             ])
+            ->add('dateDebutFacturation', DateType::class, [
+                'label' => 'Date de debut de facturation',
+                'widget' => 'single_text',
+                'attr' => ['class' => 'w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-blue-500 focus:border-blue-500'],
+            ])
             ->add('dateFin', DateType::class, [
                 'label' => 'Date de fin',
                 'widget' => 'single_text',

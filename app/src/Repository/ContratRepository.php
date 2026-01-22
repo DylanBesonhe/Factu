@@ -126,6 +126,7 @@ class ContratRepository extends ServiceEntityRepository
             ->addSelect('cl', 'l')
             ->where('c.statut = :statut')
             ->andWhere('c.periodicite = :periodicite')
+            ->andWhere('c.dateDebutFacturation <= :date')
             ->andWhere('c.dateFin IS NULL OR c.dateFin >= :date')
             ->setParameter('statut', Contrat::STATUT_ACTIF)
             ->setParameter('periodicite', $periodicite)

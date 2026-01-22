@@ -50,6 +50,10 @@ class Contrat
     #[Assert\NotBlank(message: 'La date anniversaire est obligatoire')]
     private ?\DateTimeInterface $dateAnniversaire = null;
 
+    #[ORM\Column(type: Types::DATE_MUTABLE)]
+    #[Assert\NotBlank(message: 'La date de debut de facturation est obligatoire')]
+    private ?\DateTimeInterface $dateDebutFacturation = null;
+
     #[ORM\Column(type: Types::DATE_MUTABLE, nullable: true)]
     private ?\DateTimeInterface $dateFin = null;
 
@@ -176,6 +180,17 @@ class Contrat
     public function setDateAnniversaire(\DateTimeInterface $dateAnniversaire): static
     {
         $this->dateAnniversaire = $dateAnniversaire;
+        return $this;
+    }
+
+    public function getDateDebutFacturation(): ?\DateTimeInterface
+    {
+        return $this->dateDebutFacturation;
+    }
+
+    public function setDateDebutFacturation(\DateTimeInterface $dateDebutFacturation): static
+    {
+        $this->dateDebutFacturation = $dateDebutFacturation;
         return $this;
     }
 
