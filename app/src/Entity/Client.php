@@ -75,12 +75,16 @@ class Client
     #[ORM\OneToMany(targetEntity: ClientLien::class, mappedBy: 'clientCible')]
     private Collection $liensCible;
 
+    #[ORM\OneToMany(targetEntity: Contrat::class, mappedBy: 'client')]
+    private Collection $contrats;
+
     public function __construct()
     {
         $this->contacts = new ArrayCollection();
         $this->notes = new ArrayCollection();
         $this->liensSource = new ArrayCollection();
         $this->liensCible = new ArrayCollection();
+        $this->contrats = new ArrayCollection();
     }
 
     #[ORM\PrePersist]
@@ -307,6 +311,61 @@ class Client
             }
         }
         return null;
+    }
+
+    /**
+     * @return Collection<int, Contrat>
+     */
+    public function getContrats(): Collection
+    {
+        return $this->contrats;
+    }
+
+    public function addContrat(Contrat $contrat): static
+    {
+        if (!$this->contrats->contains($contrat)) {
+            $this->contrats->add($contrat);
+            $contrat->setClient($this);
+        }
+        return $this;
+    }
+
+    public function removeContrat(Contrat $contrat): static
+    {
+        if ($this->contrats->removeElement($contrat)) {
+            if ($contrat->getClient() === $this) {
+                $contrat->setClient(null);
+            }
+        }
+        return $this;
+    }
+
+    /**
+     * Retourne le nombre total de licences actives
+     */
+    public function getNbLicences(): int
+    {
+        $total = 0;
+        foreach ($this->contrats as $contrat) {
+            if ($contrat->isActif()) {
+                $total += $contrat->getNbLicences();
+            }
+        }
+        return $total;
+    }
+
+    /**
+     * Retourne le nombre de contrats actifs
+     */
+    public function getNbContratsActifs(): int
+    {
+        $count = 0;
+        foreach ($this->contrats as $contrat) {
+            if ($contrat->isActif()) {
+                $count++;
+            }
+        }
+        return $count;
     }
 
     public function __toString(): string

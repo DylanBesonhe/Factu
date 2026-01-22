@@ -1,0 +1,63 @@
+{% extends 'layout.html.twig' %}
+
+{% block title %}Modifier contrat {{ contrat.numero }} - Factu{% endblock %}
+
+{% block page_title %}Modifier contrat {{ contrat.numero }}{% endblock %}
+
+{% block page_actions %}
+    <a href="{{ path('app_contrat_show', {id: contrat.id}) }}" class="px-4 py-2 text-sm text-gray-600 hover:bg-gray-100 rounded-lg">
+        Annuler
+    </a>
+{% endblock %}
+
+{% block content %}
+<div class="bg-white rounded-lg shadow p-6">
+    {{ form_start(form) }}
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+            <div>
+                <h3 class="text-lg font-medium text-gray-900 mb-4">Informations du contrat</h3>
+                <div class="space-y-4">
+                    <div class="grid grid-cols-2 gap-4">
+                        {{ form_row(form.numero, {'attr': {'class': 'w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-blue-500 focus:border-blue-500 bg-gray-100', 'readonly': 'readonly'}}) }}
+                        {{ form_row(form.periodicite, {'attr': {'class': 'w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-blue-500 focus:border-blue-500'}}) }}
+                    </div>
+                    {{ form_row(form.client, {'attr': {'class': 'w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-blue-500 focus:border-blue-500'}}) }}
+                    {{ form_row(form.instance, {'attr': {'class': 'w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-blue-500 focus:border-blue-500'}}) }}
+                    {{ form_row(form.emetteur, {'attr': {'class': 'w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-blue-500 focus:border-blue-500'}}) }}
+                </div>
+            </div>
+
+            <div>
+                <h3 class="text-lg font-medium text-gray-900 mb-4">Dates et options</h3>
+                <div class="space-y-4">
+                    <div class="grid grid-cols-2 gap-4">
+                        {{ form_row(form.dateSignature, {'attr': {'class': 'w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-blue-500 focus:border-blue-500'}}) }}
+                        {{ form_row(form.dateAnniversaire, {'attr': {'class': 'w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-blue-500 focus:border-blue-500'}}) }}
+                    </div>
+                    <div class="grid grid-cols-2 gap-4">
+                        {{ form_row(form.nbLicences, {'attr': {'class': 'w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-blue-500 focus:border-blue-500'}}) }}
+                        {{ form_row(form.remiseGlobale, {'attr': {'class': 'w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-blue-500 focus:border-blue-500'}}) }}
+                    </div>
+                </div>
+
+                <h3 class="text-lg font-medium text-gray-900 mb-4 mt-6">Options</h3>
+                <div class="space-y-4">
+                    {{ form_row(form.factureParticuliere) }}
+                </div>
+            </div>
+        </div>
+
+        <hr class="my-6">
+
+        <div class="flex items-center justify-between">
+            <div class="text-sm text-gray-500">
+                <p>Cree le {{ contrat.createdAt|date('d/m/Y H:i') }}</p>
+                <p>Modifie le {{ contrat.updatedAt|date('d/m/Y H:i') }}</p>
+            </div>
+            <button type="submit" class="px-6 py-2 text-sm text-white bg-blue-600 hover:bg-blue-700 rounded-lg">
+                Enregistrer
+            </button>
+        </div>
+    {{ form_end(form) }}
+</div>
+{% endblock %}

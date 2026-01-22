@@ -19,3 +19,11 @@ yarn-error.log
 ###> local credentials ###
 .credentials.local
 ###< local credentials ###
+
+###> storage uploads ###
+/storage/*
+!/storage/.gitkeep
+!/storage/contrats/
+/storage/contrats/*
+!/storage/contrats/.gitkeep
+###< storage uploads ###

@@ -1,11 +1,441 @@
 {% extends 'layout.html.twig' %}
 
-{% block title %}Contrat - Factu{% endblock %}
+{% block title %}Contrat {{ contrat.numero }} - Factu{% endblock %}
 
-{% block page_title %}Fiche contrat{% endblock %}
+{% block page_title %}Contrat {{ contrat.numero }}{% endblock %}
+
+{% block page_actions %}
+    {% if contrat.statut == 'actif' %}
+        <form method="post" action="{{ path('app_contrat_statut', {id: contrat.id}) }}" class="inline" onsubmit="return confirm('Suspendre ce contrat ?')">
+            <input type="hidden" name="_token" value="{{ csrf_token('change_statut' ~ contrat.id) }}">
+            <input type="hidden" name="statut" value="suspendu">
+            <button type="submit" class="px-4 py-2 text-sm text-yellow-600 hover:bg-yellow-50 rounded-lg">
+                Suspendre
+            </button>
+        </form>
+        <form method="post" action="{{ path('app_contrat_statut', {id: contrat.id}) }}" class="inline" onsubmit="return confirm('Resilier ce contrat ?')">
+            <input type="hidden" name="_token" value="{{ csrf_token('change_statut' ~ contrat.id) }}">
+            <input type="hidden" name="statut" value="resilie">
+            <button type="submit" class="px-4 py-2 text-sm text-red-600 hover:bg-red-50 rounded-lg">
+                Resilier
+            </button>
+        </form>
+    {% elseif contrat.statut == 'suspendu' %}
+        <form method="post" action="{{ path('app_contrat_statut', {id: contrat.id}) }}" class="inline" onsubmit="return confirm('Reactiver ce contrat ?')">
+            <input type="hidden" name="_token" value="{{ csrf_token('change_statut' ~ contrat.id) }}">
+            <input type="hidden" name="statut" value="actif">
+            <button type="submit" class="px-4 py-2 text-sm text-green-600 hover:bg-green-50 rounded-lg">
+                Reactiver
+            </button>
+        </form>
+        <form method="post" action="{{ path('app_contrat_statut', {id: contrat.id}) }}" class="inline" onsubmit="return confirm('Resilier ce contrat ?')">
+            <input type="hidden" name="_token" value="{{ csrf_token('change_statut' ~ contrat.id) }}">
+            <input type="hidden" name="statut" value="resilie">
+            <button type="submit" class="px-4 py-2 text-sm text-red-600 hover:bg-red-50 rounded-lg">
+                Resilier
+            </button>
+        </form>
+    {% elseif contrat.statut == 'resilie' %}
+        <form method="post" action="{{ path('app_contrat_statut', {id: contrat.id}) }}" class="inline" onsubmit="return confirm('Reactiver ce contrat ?')">
+            <input type="hidden" name="_token" value="{{ csrf_token('change_statut' ~ contrat.id) }}">
+            <input type="hidden" name="statut" value="actif">
+            <button type="submit" class="px-4 py-2 text-sm text-green-600 hover:bg-green-50 rounded-lg">
+                Reactiver
+            </button>
+        </form>
+    {% endif %}
+    <a href="{{ path('app_contrat_edit', {id: contrat.id}) }}" class="px-4 py-2 text-sm text-white bg-blue-600 hover:bg-blue-700 rounded-lg">
+        Modifier
+    </a>
+    <a href="{{ path('app_contrat_index') }}" class="px-4 py-2 text-sm text-gray-600 hover:bg-gray-100 rounded-lg">
+        Retour
+    </a>
+{% endblock %}
 
 {% block content %}
-<div class="bg-white rounded-lg shadow p-6">
-    <p class="text-gray-500">Fiche contrat #{{ id }}</p>
+<div x-data="{ activeTab: 'infos' }">
+    {# Tabs navigation #}
+    <div class="border-b border-gray-200 mb-4">
+        <nav class="flex gap-4">
+            <button @click="activeTab = 'infos'" :class="activeTab === 'infos' ? 'border-blue-500 text-blue-600' : 'border-transparent text-gray-500 hover:text-gray-700'" class="py-2 px-1 border-b-2 font-medium text-sm">
+                Informations
+            </button>
+            <button @click="activeTab = 'lignes'" :class="activeTab === 'lignes' ? 'border-blue-500 text-blue-600' : 'border-transparent text-gray-500 hover:text-gray-700'" class="py-2 px-1 border-b-2 font-medium text-sm">
+                Lignes ({{ contrat.lignes|length }})
+            </button>
+            <button @click="activeTab = 'evenements'" :class="activeTab === 'evenements' ? 'border-blue-500 text-blue-600' : 'border-transparent text-gray-500 hover:text-gray-700'" class="py-2 px-1 border-b-2 font-medium text-sm">
+                Evenements ({{ contrat.evenements|length }})
+            </button>
+            <button @click="activeTab = 'fichiers'" :class="activeTab === 'fichiers' ? 'border-blue-500 text-blue-600' : 'border-transparent text-gray-500 hover:text-gray-700'" class="py-2 px-1 border-b-2 font-medium text-sm">
+                Fichiers ({{ contrat.fichiers|length }})
+            </button>
+            <button @click="activeTab = 'historique'" :class="activeTab === 'historique' ? 'border-blue-500 text-blue-600' : 'border-transparent text-gray-500 hover:text-gray-700'" class="py-2 px-1 border-b-2 font-medium text-sm">
+                Historique licences
+            </button>
+        </nav>
+    </div>
+
+    {# Tab: Informations #}
+    <div x-show="activeTab === 'infos'" class="grid grid-cols-1 md:grid-cols-2 gap-4">
+        <div class="bg-white rounded-lg shadow p-6">
+            <h3 class="text-lg font-medium text-gray-900 mb-4">Informations du contrat</h3>
+            <dl class="space-y-3">
+                <div class="flex justify-between">
+                    <dt class="text-gray-500">Numero</dt>
+                    <dd class="font-mono text-gray-900">{{ contrat.numero }}</dd>
+                </div>
+                <div class="flex justify-between">
+                    <dt class="text-gray-500">Statut</dt>
+                    <dd>
+                        {% if contrat.statut == 'actif' %}
+                            <span class="px-2 py-1 text-xs font-medium text-green-800 bg-green-100 rounded-full">Actif</span>
+                        {% elseif contrat.statut == 'suspendu' %}
+                            <span class="px-2 py-1 text-xs font-medium text-yellow-800 bg-yellow-100 rounded-full">Suspendu</span>
+                        {% else %}
+                            <span class="px-2 py-1 text-xs font-medium text-red-800 bg-red-100 rounded-full">Resilie</span>
+                        {% endif %}
+                    </dd>
+                </div>
+                <div class="flex justify-between">
+                    <dt class="text-gray-500">Periodicite</dt>
+                    <dd class="text-gray-900">{{ contrat.periodiciteLabel }}</dd>
+                </div>
+                <div class="flex justify-between">
+                    <dt class="text-gray-500">Date signature</dt>
+                    <dd class="text-gray-900">{{ contrat.dateSignature|date('d/m/Y') }}</dd>
+                </div>
+                <div class="flex justify-between">
+                    <dt class="text-gray-500">Date anniversaire</dt>
+                    <dd class="text-gray-900">{{ contrat.dateAnniversaire|date('d/m/Y') }}</dd>
+                </div>
+                {% if contrat.dateFin %}
+                <div class="flex justify-between">
+                    <dt class="text-gray-500">Date fin</dt>
+                    <dd class="text-gray-900">{{ contrat.dateFin|date('d/m/Y') }}</dd>
+                </div>
+                {% endif %}
+                <div class="flex justify-between">
+                    <dt class="text-gray-500">Nb licences</dt>
+                    <dd class="text-gray-900">{{ contrat.nbLicences }}</dd>
+                </div>
+                {% if contrat.factureParticuliere %}
+                <div class="flex justify-between">
+                    <dt class="text-gray-500">Facture particuliere</dt>
+                    <dd><span class="px-2 py-1 text-xs font-medium text-orange-800 bg-orange-100 rounded-full">Oui</span></dd>
+                </div>
+                {% endif %}
+            </dl>
+        </div>
+
+        <div class="bg-white rounded-lg shadow p-6">
+            <h3 class="text-lg font-medium text-gray-900 mb-4">Client et instance</h3>
+            <dl class="space-y-3">
+                <div class="flex justify-between">
+                    <dt class="text-gray-500">Client</dt>
+                    <dd>
+                        <a href="{{ path('app_client_show', {id: contrat.client.id}) }}" class="text-blue-600 hover:underline">
+                            {{ contrat.client.raisonSociale }}
+                        </a>
+                    </dd>
+                </div>
+                <div class="flex justify-between">
+                    <dt class="text-gray-500">Code client</dt>
+                    <dd class="font-mono text-gray-900">{{ contrat.client.code }}</dd>
+                </div>
+                {% if contrat.instance %}
+                <div class="flex justify-between">
+                    <dt class="text-gray-500">Instance</dt>
+                    <dd class="text-gray-900">{{ contrat.instance.nomActuel }}</dd>
+                </div>
+                {% if contrat.instance.url %}
+                <div class="flex justify-between">
+                    <dt class="text-gray-500">URL instance</dt>
+                    <dd><a href="{{ contrat.instance.url }}" target="_blank" class="text-blue-600 hover:underline">{{ contrat.instance.url }}</a></dd>
+                </div>
+                {% endif %}
+                {% endif %}
+                <div class="flex justify-between">
+                    <dt class="text-gray-500">Emetteur</dt>
+                    <dd class="text-gray-900">{{ contrat.emetteur.nom }}</dd>
+                </div>
+            </dl>
+        </div>
+
+        <div class="bg-white rounded-lg shadow p-6">
+            <h3 class="text-lg font-medium text-gray-900 mb-4">Montants</h3>
+            <dl class="space-y-3">
+                <div class="flex justify-between">
+                    <dt class="text-gray-500">Total HT</dt>
+                    <dd class="font-medium text-gray-900">{{ contrat.totalHt|number_format(2, ',', ' ') }} &euro;</dd>
+                </div>
+                {% if contrat.remiseGlobale %}
+                <div class="flex justify-between">
+                    <dt class="text-gray-500">Remise globale</dt>
+                    <dd class="text-gray-900">{{ contrat.remiseGlobale|number_format(2, ',', ' ') }}%</dd>
+                </div>
+                {% endif %}
+                <div class="flex justify-between">
+                    <dt class="text-gray-500">Total TVA</dt>
+                    <dd class="text-gray-900">{{ contrat.totalTva|number_format(2, ',', ' ') }} &euro;</dd>
+                </div>
+                <div class="flex justify-between border-t pt-3">
+                    <dt class="text-gray-700 font-medium">Total TTC</dt>
+                    <dd class="font-bold text-gray-900">{{ contrat.totalTtc|number_format(2, ',', ' ') }} &euro;</dd>
+                </div>
+            </dl>
+        </div>
+
+        <div class="bg-white rounded-lg shadow p-6">
+            <h3 class="text-lg font-medium text-gray-900 mb-4">Informations systeme</h3>
+            <dl class="space-y-3">
+                <div class="flex justify-between">
+                    <dt class="text-gray-500">Date creation</dt>
+                    <dd class="text-gray-900">{{ contrat.createdAt|date('d/m/Y H:i') }}</dd>
+                </div>
+                <div class="flex justify-between">
+                    <dt class="text-gray-500">Derniere modification</dt>
+                    <dd class="text-gray-900">{{ contrat.updatedAt|date('d/m/Y H:i') }}</dd>
+                </div>
+            </dl>
+        </div>
+    </div>
+
+    {# Tab: Lignes #}
+    <div x-show="activeTab === 'lignes'" class="grid grid-cols-1 lg:grid-cols-3 gap-4">
+        <div class="lg:col-span-2 bg-white rounded-lg shadow">
+            <div class="p-4 border-b border-gray-200">
+                <h3 class="text-lg font-medium text-gray-900">Lignes du contrat</h3>
+            </div>
+            <div class="overflow-x-auto">
+                <table class="w-full text-sm text-left text-gray-500">
+                    <thead class="text-xs text-gray-700 uppercase bg-gray-50">
+                        <tr>
+                            <th class="px-4 py-3">Module</th>
+                            <th class="px-4 py-3 text-right">Qte</th>
+                            <th class="px-4 py-3 text-right">P.U. HT</th>
+                            <th class="px-4 py-3 text-right">Remise</th>
+                            <th class="px-4 py-3 text-right">TVA</th>
+                            <th class="px-4 py-3 text-right">Total HT</th>
+                            <th class="px-4 py-3">Actions</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for ligne in contrat.lignes %}
+                            <tr class="bg-white border-b hover:bg-gray-50">
+                                <td class="px-4 py-3 font-medium text-gray-900">
+                                    {{ ligne.module.nom }}
+                                    {% if ligne.description %}
+                                        <p class="text-xs text-gray-500">{{ ligne.description }}</p>
+                                    {% endif %}
+                                </td>
+                                <td class="px-4 py-3 text-right">{{ ligne.quantite }}</td>
+                                <td class="px-4 py-3 text-right">{{ ligne.prixUnitaireHt|number_format(2, ',', ' ') }} &euro;</td>
+                                <td class="px-4 py-3 text-right">
+                                    {% if ligne.remise %}
+                                        {{ ligne.remise|number_format(2, ',', ' ') }}%
+                                    {% else %}
+                                        -
+                                    {% endif %}
+                                </td>
+                                <td class="px-4 py-3 text-right">{{ ligne.tauxTva|number_format(2, ',', ' ') }}%</td>
+                                <td class="px-4 py-3 text-right font-medium">{{ ligne.totalHt|number_format(2, ',', ' ') }} &euro;</td>
+                                <td class="px-4 py-3">
+                                    <form method="post" action="{{ path('app_contrat_ligne_delete', {id: contrat.id, ligneId: ligne.id}) }}" class="inline" onsubmit="return confirm('Supprimer cette ligne ?')">
+                                        <input type="hidden" name="_token" value="{{ csrf_token('delete_ligne' ~ ligne.id) }}">
+                                        <button type="submit" class="text-red-600 hover:text-red-900" title="Supprimer">
+                                            <svg class="w-4 h-4 inline" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"></path>
+                                            </svg>
+                                        </button>
+                                    </form>
+                                </td>
+                            </tr>
+                        {% else %}
+                            <tr>
+                                <td colspan="7" class="px-4 py-3 text-center text-gray-500">Aucune ligne</td>
+                            </tr>
+                        {% endfor %}
+                    </tbody>
+                    {% if contrat.lignes|length > 0 %}
+                    <tfoot class="bg-gray-50">
+                        <tr>
+                            <td colspan="5" class="px-4 py-3 text-right font-medium">Total HT</td>
+                            <td class="px-4 py-3 text-right font-bold">{{ contrat.totalHt|number_format(2, ',', ' ') }} &euro;</td>
+                            <td></td>
+                        </tr>
+                    </tfoot>
+                    {% endif %}
+                </table>
+            </div>
+        </div>
+
+        <div class="bg-white rounded-lg shadow p-4">
+            <h3 class="text-lg font-medium text-gray-900 mb-4">Ajouter une ligne</h3>
+            {{ form_start(ligneForm, {'action': path('app_contrat_ligne_new', {id: contrat.id})}) }}
+                {{ form_row(ligneForm.module, {'attr': {'class': 'w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-blue-500 focus:border-blue-500'}}) }}
+                {{ form_row(ligneForm.quantite, {'attr': {'class': 'w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-blue-500 focus:border-blue-500'}}) }}
+                {{ form_row(ligneForm.prixUnitaireHt, {'attr': {'class': 'w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-blue-500 focus:border-blue-500'}}) }}
+                {{ form_row(ligneForm.remise, {'attr': {'class': 'w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-blue-500 focus:border-blue-500'}}) }}
+                {{ form_row(ligneForm.tauxTva, {'attr': {'class': 'w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-blue-500 focus:border-blue-500'}}) }}
+                {{ form_row(ligneForm.description, {'attr': {'class': 'w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-blue-500 focus:border-blue-500'}}) }}
+                <button type="submit" class="w-full px-4 py-2 text-sm text-white bg-blue-600 hover:bg-blue-700 rounded-lg mt-2">Ajouter</button>
+            {{ form_end(ligneForm) }}
+        </div>
+    </div>
+
+    {# Tab: Evenements #}
+    <div x-show="activeTab === 'evenements'" class="grid grid-cols-1 lg:grid-cols-3 gap-4">
+        <div class="lg:col-span-2 space-y-4">
+            {% for evenement in contrat.evenements %}
+                <div class="bg-white rounded-lg shadow p-4">
+                    <div class="flex justify-between items-start">
+                        <div class="flex-1">
+                            <div class="flex items-center gap-2 mb-2">
+                                <span class="px-2 py-1 text-xs font-medium {{ evenement.typeColor }} rounded-full">
+                                    {{ evenement.typeLabel }}
+                                </span>
+                                {% if evenement.dateEffet %}
+                                    <span class="text-sm text-gray-500">{{ evenement.dateEffet|date('d/m/Y') }}</span>
+                                {% endif %}
+                            </div>
+                            <p class="text-gray-900">{{ evenement.description }}</p>
+                            <p class="text-sm text-gray-500 mt-2">
+                                {{ evenement.createdAt|date('d/m/Y H:i') }}
+                                {% if evenement.auteur %} - {{ evenement.auteur }}{% endif %}
+                            </p>
+                        </div>
+                        <form method="post" action="{{ path('app_contrat_evenement_delete', {id: contrat.id, evenementId: evenement.id}) }}" onsubmit="return confirm('Supprimer cet evenement ?')">
+                            <input type="hidden" name="_token" value="{{ csrf_token('delete_evenement' ~ evenement.id) }}">
+                            <button type="submit" class="text-red-600 hover:text-red-900">
+                                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"></path>
+                                </svg>
+                            </button>
+                        </form>
+                    </div>
+                </div>
+            {% else %}
+                <div class="bg-white rounded-lg shadow p-4 text-center text-gray-500">
+                    Aucun evenement
+                </div>
+            {% endfor %}
+        </div>
+
+        <div class="bg-white rounded-lg shadow p-4">
+            <h3 class="text-lg font-medium text-gray-900 mb-4">Ajouter un evenement</h3>
+            {{ form_start(evenementForm, {'action': path('app_contrat_evenement_new', {id: contrat.id})}) }}
+                {{ form_row(evenementForm.type, {'attr': {'class': 'w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-blue-500 focus:border-blue-500'}}) }}
+                {{ form_row(evenementForm.description, {'attr': {'class': 'w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-blue-500 focus:border-blue-500'}}) }}
+                {{ form_row(evenementForm.dateEffet, {'attr': {'class': 'w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-blue-500 focus:border-blue-500'}}) }}
+                <button type="submit" class="w-full px-4 py-2 text-sm text-white bg-blue-600 hover:bg-blue-700 rounded-lg mt-2">Ajouter</button>
+            {{ form_end(evenementForm) }}
+        </div>
+    </div>
+
+    {# Tab: Fichiers #}
+    <div x-show="activeTab === 'fichiers'" class="grid grid-cols-1 lg:grid-cols-3 gap-4">
+        <div class="lg:col-span-2 bg-white rounded-lg shadow">
+            <div class="p-4 border-b border-gray-200">
+                <h3 class="text-lg font-medium text-gray-900">Documents attaches</h3>
+            </div>
+            <div class="overflow-x-auto">
+                <table class="w-full text-sm text-left text-gray-500">
+                    <thead class="text-xs text-gray-700 uppercase bg-gray-50">
+                        <tr>
+                            <th class="px-4 py-3">Nom</th>
+                            <th class="px-4 py-3">Description</th>
+                            <th class="px-4 py-3">Taille</th>
+                            <th class="px-4 py-3">Date</th>
+                            <th class="px-4 py-3">Actions</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for fichier in contrat.fichiers %}
+                            <tr class="bg-white border-b hover:bg-gray-50">
+                                <td class="px-4 py-3 font-medium text-gray-900">
+                                    <a href="{{ path('app_contrat_fichier_download', {id: contrat.id, fichierId: fichier.id}) }}" class="text-blue-600 hover:underline">
+                                        {{ fichier.nomOriginal }}
+                                    </a>
+                                </td>
+                                <td class="px-4 py-3">{{ fichier.description ?? '-' }}</td>
+                                <td class="px-4 py-3">{{ (fichier.taille / 1024)|number_format(0, ',', ' ') }} Ko</td>
+                                <td class="px-4 py-3">{{ fichier.createdAt|date('d/m/Y H:i') }}</td>
+                                <td class="px-4 py-3">
+                                    <a href="{{ path('app_contrat_fichier_download', {id: contrat.id, fichierId: fichier.id}) }}" class="text-blue-600 hover:text-blue-900 mr-2" title="Telecharger">
+                                        <svg class="w-4 h-4 inline" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 10v6m0 0l-3-3m3 3l3-3m2 8H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"></path>
+                                        </svg>
+                                    </a>
+                                    <form method="post" action="{{ path('app_contrat_fichier_delete', {id: contrat.id, fichierId: fichier.id}) }}" class="inline" onsubmit="return confirm('Supprimer ce fichier ?')">
+                                        <input type="hidden" name="_token" value="{{ csrf_token('delete_fichier' ~ fichier.id) }}">
+                                        <button type="submit" class="text-red-600 hover:text-red-900" title="Supprimer">
+                                            <svg class="w-4 h-4 inline" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"></path>
+                                            </svg>
+                                        </button>
+                                    </form>
+                                </td>
+                            </tr>
+                        {% else %}
+                            <tr>
+                                <td colspan="5" class="px-4 py-3 text-center text-gray-500">Aucun fichier</td>
+                            </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+        </div>
+
+        <div class="bg-white rounded-lg shadow p-4">
+            <h3 class="text-lg font-medium text-gray-900 mb-4">Ajouter un fichier</h3>
+            <form method="post" action="{{ path('app_contrat_fichier_upload', {id: contrat.id}) }}" enctype="multipart/form-data">
+                <div class="mb-4">
+                    <label class="block text-sm font-medium text-gray-700 mb-1">Fichier</label>
+                    <input type="file" name="fichier" required class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-blue-500 focus:border-blue-500">
+                </div>
+                <div class="mb-4">
+                    <label class="block text-sm font-medium text-gray-700 mb-1">Description</label>
+                    <input type="text" name="description" class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-blue-500 focus:border-blue-500" placeholder="Description optionnelle">
+                </div>
+                <button type="submit" class="w-full px-4 py-2 text-sm text-white bg-blue-600 hover:bg-blue-700 rounded-lg">Uploader</button>
+            </form>
+        </div>
+    </div>
+
+    {# Tab: Historique licences #}
+    <div x-show="activeTab === 'historique'" class="bg-white rounded-lg shadow">
+        <div class="p-4 border-b border-gray-200">
+            <h3 class="text-lg font-medium text-gray-900">Historique des licences (12 derniers mois)</h3>
+        </div>
+        <div class="overflow-x-auto">
+            <table class="w-full text-sm text-left text-gray-500">
+                <thead class="text-xs text-gray-700 uppercase bg-gray-50">
+                    <tr>
+                        <th class="px-4 py-3">Mois</th>
+                        <th class="px-4 py-3 text-right">Nb licences</th>
+                        <th class="px-4 py-3">Date releve</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for historique in historiqueLicences %}
+                        <tr class="bg-white border-b hover:bg-gray-50">
+                            <td class="px-4 py-3 font-medium text-gray-900">{{ historique.mois|date('m/Y') }}</td>
+                            <td class="px-4 py-3 text-right">{{ historique.nbLicences }}</td>
+                            <td class="px-4 py-3">{{ historique.createdAt|date('d/m/Y H:i') }}</td>
+                        </tr>
+                    {% else %}
+                        <tr>
+                            <td colspan="3" class="px-4 py-3 text-center text-gray-500">Aucun historique</td>
+                        </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </div>
 </div>
+{% endblock %}
+
+{% block javascripts %}
+{{ parent() }}
+<script src="https://cdn.jsdelivr.net/npm/alpinejs@3.x.x/dist/cdn.min.js" defer></script>
 {% endblock %}
