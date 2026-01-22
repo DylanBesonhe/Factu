@@ -1,0 +1,206 @@
+{% extends 'layout.html.twig' %}
+
+{% block title %}Clients - Factu{% endblock %}
+
+{% block page_title %}Gestion des clients{% endblock %}
+
+{% block page_actions %}
+<div class="flex space-x-2">
+    <a href="{{ path('app_admin_clients_export', {search: search, actif: actif}) }}" class="btn-secondary">
+        <svg class="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 10v6m0 0l-3-3m3 3l3-3m2 8H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"></path>
+        </svg>
+        Export CSV
+    </a>
+    <a href="{{ path('app_admin_clients_new') }}" class="btn-primary">
+        + Nouveau client
+    </a>
+</div>
+{% endblock %}
+
+{% block content %}
+<div class="bg-white rounded-lg shadow">
+    {# Search and filters #}
+    <div class="p-4 border-b border-gray-200">
+        <form method="get" action="{{ path('app_admin_clients') }}" class="flex flex-wrap items-center gap-4">
+            <div class="flex-1 min-w-[200px]">
+                <input type="text" name="search" value="{{ search }}" placeholder="Rechercher (code, raison sociale, SIREN)..."
+                       class="form-input w-full">
+            </div>
+            <div class="w-40">
+                <select name="actif" class="form-input w-full">
+                    <option value="">Tous les statuts</option>
+                    <option value="1" {{ actif == '1' ? 'selected' : '' }}>Actifs</option>
+                    <option value="0" {{ actif == '0' ? 'selected' : '' }}>Inactifs</option>
+                </select>
+            </div>
+            <input type="hidden" name="sort" value="{{ sort }}">
+            <input type="hidden" name="direction" value="{{ direction }}">
+            <button type="submit" class="btn-secondary">
+                <svg class="w-4 h-4 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"></path>
+                </svg>
+                Rechercher
+            </button>
+            {% if search or actif %}
+            <a href="{{ path('app_admin_clients') }}" class="text-sm text-gray-500 hover:text-gray-700">
+                Effacer les filtres
+            </a>
+            {% endif %}
+        </form>
+    </div>
+
+    {# Results count #}
+    <div class="px-4 py-2 bg-gray-50 text-sm text-gray-600 border-b">
+        {{ total }} client{{ total > 1 ? 's' : '' }} trouve{{ total > 1 ? 's' : '' }}
+    </div>
+
+    {# Table #}
+    <div class="overflow-x-auto">
+        <table class="w-full text-sm text-left text-gray-500">
+            <thead class="text-xs text-gray-700 uppercase bg-gray-50">
+                <tr>
+                    <th scope="col" class="px-6 py-3">
+                        <a href="{{ path('app_admin_clients', {search: search, actif: actif, sort: 'code', direction: sort == 'code' and direction == 'ASC' ? 'DESC' : 'ASC'}) }}" class="flex items-center hover:text-blue-600">
+                            Code
+                            {% if sort == 'code' %}
+                                <svg class="w-4 h-4 ml-1" fill="currentColor" viewBox="0 0 20 20">
+                                    {% if direction == 'ASC' %}
+                                    <path fill-rule="evenodd" d="M14.707 12.707a1 1 0 01-1.414 0L10 9.414l-3.293 3.293a1 1 0 01-1.414-1.414l4-4a1 1 0 011.414 0l4 4a1 1 0 010 1.414z" clip-rule="evenodd"></path>
+                                    {% else %}
+                                    <path fill-rule="evenodd" d="M5.293 7.293a1 1 0 011.414 0L10 10.586l3.293-3.293a1 1 0 111.414 1.414l-4 4a1 1 0 01-1.414 0l-4-4a1 1 0 010-1.414z" clip-rule="evenodd"></path>
+                                    {% endif %}
+                                </svg>
+                            {% endif %}
+                        </a>
+                    </th>
+                    <th scope="col" class="px-6 py-3">
+                        <a href="{{ path('app_admin_clients', {search: search, actif: actif, sort: 'raisonSociale', direction: sort == 'raisonSociale' and direction == 'ASC' ? 'DESC' : 'ASC'}) }}" class="flex items-center hover:text-blue-600">
+                            Raison sociale
+                            {% if sort == 'raisonSociale' %}
+                                <svg class="w-4 h-4 ml-1" fill="currentColor" viewBox="0 0 20 20">
+                                    {% if direction == 'ASC' %}
+                                    <path fill-rule="evenodd" d="M14.707 12.707a1 1 0 01-1.414 0L10 9.414l-3.293 3.293a1 1 0 01-1.414-1.414l4-4a1 1 0 011.414 0l4 4a1 1 0 010 1.414z" clip-rule="evenodd"></path>
+                                    {% else %}
+                                    <path fill-rule="evenodd" d="M5.293 7.293a1 1 0 011.414 0L10 10.586l3.293-3.293a1 1 0 111.414 1.414l-4 4a1 1 0 01-1.414 0l-4-4a1 1 0 010-1.414z" clip-rule="evenodd"></path>
+                                    {% endif %}
+                                </svg>
+                            {% endif %}
+                        </a>
+                    </th>
+                    <th scope="col" class="px-6 py-3">
+                        <a href="{{ path('app_admin_clients', {search: search, actif: actif, sort: 'siren', direction: sort == 'siren' and direction == 'ASC' ? 'DESC' : 'ASC'}) }}" class="flex items-center hover:text-blue-600">
+                            SIREN
+                            {% if sort == 'siren' %}
+                                <svg class="w-4 h-4 ml-1" fill="currentColor" viewBox="0 0 20 20">
+                                    {% if direction == 'ASC' %}
+                                    <path fill-rule="evenodd" d="M14.707 12.707a1 1 0 01-1.414 0L10 9.414l-3.293 3.293a1 1 0 01-1.414-1.414l4-4a1 1 0 011.414 0l4 4a1 1 0 010 1.414z" clip-rule="evenodd"></path>
+                                    {% else %}
+                                    <path fill-rule="evenodd" d="M5.293 7.293a1 1 0 011.414 0L10 10.586l3.293-3.293a1 1 0 111.414 1.414l-4 4a1 1 0 01-1.414 0l-4-4a1 1 0 010-1.414z" clip-rule="evenodd"></path>
+                                    {% endif %}
+                                </svg>
+                            {% endif %}
+                        </a>
+                    </th>
+                    <th scope="col" class="px-6 py-3">Email</th>
+                    <th scope="col" class="px-6 py-3">Contrats</th>
+                    <th scope="col" class="px-6 py-3">Statut</th>
+                    <th scope="col" class="px-6 py-3 text-right">Actions</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for client in clients %}
+                <tr class="bg-white border-b hover:bg-gray-50">
+                    <td class="px-6 py-4 font-mono font-medium text-gray-900">
+                        {{ client.code }}
+                    </td>
+                    <td class="px-6 py-4 font-medium text-gray-900">
+                        {{ client.raisonSociale }}
+                    </td>
+                    <td class="px-6 py-4 font-mono">
+                        {{ client.siren ? client.siren : '-' }}
+                    </td>
+                    <td class="px-6 py-4">
+                        {{ client.email ? client.email : '-' }}
+                    </td>
+                    <td class="px-6 py-4">
+                        {% if client.nbContratsActifs > 0 %}
+                            <span class="px-2 py-1 text-xs font-medium text-blue-800 bg-blue-100 rounded-full">
+                                {{ client.nbContratsActifs }}
+                            </span>
+                        {% else %}
+                            <span class="text-gray-400">-</span>
+                        {% endif %}
+                    </td>
+                    <td class="px-6 py-4">
+                        {% if client.actif %}
+                            <span class="px-2 py-1 text-xs font-medium text-green-800 bg-green-100 rounded-full">Actif</span>
+                        {% else %}
+                            <span class="px-2 py-1 text-xs font-medium text-red-800 bg-red-100 rounded-full">Inactif</span>
+                        {% endif %}
+                    </td>
+                    <td class="px-6 py-4 text-right">
+                        <div class="flex items-center justify-end space-x-2">
+                            <a href="{{ path('app_admin_clients_show', {id: client.id}) }}" class="inline-flex items-center px-2 py-1 text-xs font-medium text-blue-700 bg-blue-50 rounded hover:bg-blue-100">
+                                <svg class="w-4 h-4 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"></path>
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z"></path>
+                                </svg>
+                                Voir
+                            </a>
+                            <a href="{{ path('app_admin_clients_edit', {id: client.id}) }}" class="inline-flex items-center px-2 py-1 text-xs font-medium text-amber-700 bg-amber-50 rounded hover:bg-amber-100">
+                                <svg class="w-4 h-4 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"></path>
+                                </svg>
+                                Modifier
+                            </a>
+                        </div>
+                    </td>
+                </tr>
+                {% else %}
+                <tr>
+                    <td colspan="7" class="px-6 py-8 text-center text-gray-500">
+                        {% if search or actif %}
+                            Aucun client ne correspond a votre recherche.
+                        {% else %}
+                            Aucun client. <a href="{{ path('app_admin_clients_new') }}" class="text-blue-600 hover:underline">Creer le premier</a>
+                        {% endif %}
+                    </td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+
+    {# Pagination #}
+    {% if totalPages > 1 %}
+    <div class="px-4 py-3 border-t border-gray-200 flex items-center justify-between">
+        <div class="text-sm text-gray-700">
+            Page {{ page }} sur {{ totalPages }}
+        </div>
+        <nav class="flex space-x-1">
+            {% if page > 1 %}
+            <a href="{{ path('app_admin_clients', {search: search, actif: actif, sort: sort, direction: direction, page: page - 1}) }}"
+               class="px-3 py-1 text-sm border border-gray-300 rounded hover:bg-gray-50">
+                Precedent
+            </a>
+            {% endif %}
+
+            {% for p in max(1, page - 2)..min(totalPages, page + 2) %}
+            <a href="{{ path('app_admin_clients', {search: search, actif: actif, sort: sort, direction: direction, page: p}) }}"
+               class="px-3 py-1 text-sm border rounded {{ p == page ? 'bg-blue-600 text-white border-blue-600' : 'border-gray-300 hover:bg-gray-50' }}">
+                {{ p }}
+            </a>
+            {% endfor %}
+
+            {% if page < totalPages %}
+            <a href="{{ path('app_admin_clients', {search: search, actif: actif, sort: sort, direction: direction, page: page + 1}) }}"
+               class="px-3 py-1 text-sm border border-gray-300 rounded hover:bg-gray-50">
+                Suivant
+            </a>
+            {% endif %}
+        </nav>
+    </div>
+    {% endif %}
+</div>
+{% endblock %}

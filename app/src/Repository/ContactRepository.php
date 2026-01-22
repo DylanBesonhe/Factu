@@ -2,6 +2,7 @@
 
 namespace App\Repository;
 
+use App\Entity\Client;
 use App\Entity\Contact;
 use Doctrine\Bundle\DoctrineBundle\Repository\ServiceEntityRepository;
 use Doctrine\Persistence\ManagerRegistry;
@@ -14,6 +15,18 @@ class ContactRepository extends ServiceEntityRepository
     public function __construct(ManagerRegistry $registry)
     {
         parent::__construct($registry, Contact::class);
+    }
+
+    public function resetPrincipal(Client $client): void
+    {
+        $this->createQueryBuilder('c')
+            ->update()
+            ->set('c.principal', ':false')
+            ->where('c.client = :client')
+            ->setParameter('false', false)
+            ->setParameter('client', $client)
+            ->getQuery()
+            ->execute();
     }
 
     public function save(Contact $entity, bool $flush = false): void

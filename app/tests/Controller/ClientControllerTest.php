@@ -18,7 +18,7 @@ class ClientControllerTest extends WebTestCase
     public function testClientListRequiresAuthentication(): void
     {
         $client = static::createClient();
-        $client->request('GET', '/clients');
+        $client->request('GET', '/admin/clients');
 
         $this->assertResponseRedirects('/login');
     }
@@ -28,7 +28,7 @@ class ClientControllerTest extends WebTestCase
         $client = static::createClient();
         $this->loginAsAdmin($client);
 
-        $client->request('GET', '/clients');
+        $client->request('GET', '/admin/clients');
 
         $this->assertResponseIsSuccessful();
     }
@@ -38,7 +38,7 @@ class ClientControllerTest extends WebTestCase
         $client = static::createClient();
         $this->loginAsAdmin($client);
 
-        $crawler = $client->request('GET', '/clients');
+        $crawler = $client->request('GET', '/admin/clients');
 
         $this->assertResponseIsSuccessful();
         $this->assertSelectorExists('table tbody tr');
@@ -49,7 +49,7 @@ class ClientControllerTest extends WebTestCase
         $client = static::createClient();
         $this->loginAsAdmin($client);
 
-        $crawler = $client->request('GET', '/clients?search=CREATION');
+        $crawler = $client->request('GET', '/admin/clients?search=CREATION');
 
         $this->assertResponseIsSuccessful();
         $this->assertSelectorTextContains('table', 'CREATION METAL');
@@ -60,7 +60,7 @@ class ClientControllerTest extends WebTestCase
         $client = static::createClient();
         $this->loginAsAdmin($client);
 
-        $client->request('GET', '/clients/new');
+        $client->request('GET', '/admin/clients/nouveau');
 
         $this->assertResponseIsSuccessful();
         $this->assertSelectorExists('form');
@@ -74,7 +74,7 @@ class ClientControllerTest extends WebTestCase
         $clientRepository = static::getContainer()->get(ClientRepository::class);
         $testClient = $clientRepository->findOneBy(['code' => 'CLI001']);
 
-        $client->request('GET', '/clients/' . $testClient->getId());
+        $client->request('GET', '/admin/clients/' . $testClient->getId());
 
         $this->assertResponseIsSuccessful();
     }
@@ -87,7 +87,7 @@ class ClientControllerTest extends WebTestCase
         $clientRepository = static::getContainer()->get(ClientRepository::class);
         $testClient = $clientRepository->findOneBy(['code' => 'CLI001']);
 
-        $client->request('GET', '/clients/' . $testClient->getId() . '/edit');
+        $client->request('GET', '/admin/clients/' . $testClient->getId() . '/modifier');
 
         $this->assertResponseIsSuccessful();
         $this->assertSelectorExists('form');
@@ -98,7 +98,7 @@ class ClientControllerTest extends WebTestCase
         $client = static::createClient();
         $this->loginAsAdmin($client);
 
-        $client->request('GET', '/clients/export');
+        $client->request('GET', '/admin/clients/export');
 
         $this->assertResponseIsSuccessful();
         $this->assertResponseHeaderSame('Content-Type', 'text/csv; charset=UTF-8');
