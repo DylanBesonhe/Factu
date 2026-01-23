@@ -1,10 +1,11 @@
 {% extends 'layout.html.twig' %}
 
 {% set numeroDisplay = facture.numero ?? 'Brouillon #' ~ facture.id %}
+{% set typeLabel = facture.isAvoir ? 'Avoir' : 'Facture' %}
 
-{% block title %}Facture {{ numeroDisplay }} - Factu{% endblock %}
+{% block title %}{{ typeLabel }} {{ numeroDisplay }} - Factu{% endblock %}
 
-{% block page_title %}Facture {{ numeroDisplay }}{% endblock %}
+{% block page_title %}{{ typeLabel }} {{ numeroDisplay }}{% endblock %}
 
 {% block breadcrumbs %}
     {% set breadcrumbs = [
@@ -52,6 +53,24 @@
             </button>
         </form>
     {% endif %}
+    {# Bouton Creer un avoir (pour factures validees/envoyees/payees, pas pour avoirs) #}
+    {% if facture.isFacture and facture.statut in ['validee', 'envoyee', 'payee'] and facture.statut != 'annulee' %}
+        <a href="{{ path('app_facturation_avoir_new', {id: facture.id}) }}" class="px-4 py-2 text-sm text-white bg-orange-600 hover:bg-orange-700 rounded-lg flex items-center gap-2">
+            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 14l6-6m-5.5.5h.01m4.99 5h.01M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16l3.5-2 3.5 2 3.5-2 3.5 2z"></path>
+            </svg>
+            Creer un avoir
+        </a>
+    {% endif %}
+    {# Bouton Marquer rembourse (pour avoirs valides) #}
+    {% if facture.isAvoir and facture.statut == 'validee' %}
+        <form method="post" action="{{ path('app_facturation_rembourser', {id: facture.id}) }}" class="inline">
+            <input type="hidden" name="_token" value="{{ csrf_token('rembourser' ~ facture.id) }}">
+            <button type="submit" class="px-4 py-2 text-sm text-white bg-purple-600 hover:bg-purple-700 rounded-lg">
+                Marquer rembourse
+            </button>
+        </form>
+    {% endif %}
     <a href="{{ path('app_facturation_pdf', {id: facture.id}) }}"
        target="_blank"
        title="Telecharger le PDF"
@@ -62,9 +81,31 @@
         </svg>
         PDF
     </a>
-    <a href="{{ path('app_facturation_workflow') }}" class="px-4 py-2 text-sm text-gray-600 hover:bg-gray-100 rounded-lg">
-        Retour
+    {% if facture.statut != 'brouillon' %}
+    <a href="{{ path('app_facturation_facturx', {id: facture.id}) }}"
+       title="Telecharger le PDF Factur-X (conformite e-invoicing)"
+       class="px-4 py-2 text-sm text-white bg-indigo-600 hover:bg-indigo-700 rounded-lg flex items-center gap-2">
+        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                  d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"/>
+        </svg>
+        Factur-X
     </a>
+    {% endif %}
+    {% set moisFacture = facture.dateFacture|date('Y-m') %}
+    {% if facture.isAvoir %}
+        <a href="{{ path('app_facturation_avoirs', {mois: moisFacture}) }}" class="px-4 py-2 text-sm text-gray-600 hover:bg-gray-100 rounded-lg">
+            Retour
+        </a>
+    {% elseif facture.contrat is null %}
+        <a href="{{ path('app_facturation_manuelles', {mois: moisFacture}) }}" class="px-4 py-2 text-sm text-gray-600 hover:bg-gray-100 rounded-lg">
+            Retour
+        </a>
+    {% else %}
+        <a href="{{ path('app_facturation_workflow', {mois: moisFacture}) }}" class="px-4 py-2 text-sm text-gray-600 hover:bg-gray-100 rounded-lg">
+            Retour
+        </a>
+    {% endif %}
 {% endblock %}
 
 {% block content %}
@@ -81,6 +122,11 @@
             <button @click="activeTab = 'actions'" :class="activeTab === 'actions' ? 'border-blue-500 text-blue-600' : 'border-transparent text-gray-500 hover:text-gray-700'" class="py-2 px-1 border-b-2 font-medium text-sm">
                 Historique
             </button>
+            {% if facture.isFacture and facture.avoirs|length > 0 %}
+            <button @click="activeTab = 'avoirs'" :class="activeTab === 'avoirs' ? 'border-blue-500 text-blue-600' : 'border-transparent text-gray-500 hover:text-gray-700'" class="py-2 px-1 border-b-2 font-medium text-sm">
+                Avoirs ({{ facture.avoirs|length }})
+            </button>
+            {% endif %}
         </nav>
     </div>
 
@@ -101,14 +147,48 @@
                         </span>
                     </dd>
                 </div>
+                {% if facture.contrat %}
                 <div class="flex justify-between">
                     <dt class="text-gray-500">Contrat</dt>
-                    <dd>
+                    <dd class="flex items-center gap-1">
                         <a href="{{ path('app_contrat_show', {id: facture.contrat.id}) }}" class="text-blue-600 hover:underline">
                             {{ facture.contrat.numero }}
                         </a>
+                        {% if facture.contrat.factureParticuliere %}
+                            {% include 'components/_facture_particuliere_icon.html.twig' with {description: facture.contrat.factureParticuliereDescription} %}
+                        {% endif %}
                     </dd>
                 </div>
+                {% if facture.contrat.factureParticuliere %}
+                <div class="bg-amber-50 border border-amber-200 rounded-lg p-3 mt-2">
+                    <div class="flex items-start gap-2">
+                        <svg class="w-5 h-5 text-amber-500 flex-shrink-0 mt-0.5" fill="currentColor" viewBox="0 0 20 20">
+                            <path fill-rule="evenodd" d="M8.257 3.099c.765-1.36 2.722-1.36 3.486 0l5.58 9.92c.75 1.334-.213 2.98-1.742 2.98H4.42c-1.53 0-2.493-1.646-1.743-2.98l5.58-9.92zM11 13a1 1 0 11-2 0 1 1 0 012 0zm-1-8a1 1 0 00-1 1v3a1 1 0 002 0V6a1 1 0 00-1-1z" clip-rule="evenodd"/>
+                        </svg>
+                        <div>
+                            <p class="text-sm font-medium text-amber-800">Facture particuliere</p>
+                            <p class="text-sm text-amber-700">{{ facture.contrat.factureParticuliereDescription }}</p>
+                        </div>
+                    </div>
+                </div>
+                {% endif %}
+                {% endif %}
+                {% if facture.isAvoir and facture.factureParente %}
+                <div class="flex justify-between">
+                    <dt class="text-gray-500">Facture parente</dt>
+                    <dd>
+                        <a href="{{ path('app_facturation_show', {id: facture.factureParente.id}) }}" class="text-blue-600 hover:underline">
+                            {{ facture.factureParente.numero }}
+                        </a>
+                    </dd>
+                </div>
+                {% endif %}
+                {% if facture.isAvoir and facture.motifAvoir %}
+                <div>
+                    <dt class="text-gray-500 mb-1">Motif de l'avoir</dt>
+                    <dd class="text-gray-900 text-sm">{{ facture.motifAvoir }}</dd>
+                </div>
+                {% endif %}
                 <div class="flex justify-between">
                     <dt class="text-gray-500">Date de facture</dt>
                     <dd class="text-gray-900">{{ facture.dateFacture|date('d/m/Y') }}</dd>
@@ -121,6 +201,12 @@
                     <dt class="text-gray-500">Periode</dt>
                     <dd class="text-gray-900">{{ facture.periodeDebut|date('d/m/Y') }} - {{ facture.periodeFin|date('d/m/Y') }}</dd>
                 </div>
+                {% if facture.referenceCommande %}
+                <div class="flex justify-between">
+                    <dt class="text-gray-500">Ref. commande</dt>
+                    <dd class="font-mono text-gray-900">{{ facture.referenceCommande }}</dd>
+                </div>
+                {% endif %}
             </dl>
         </div>
 
@@ -141,6 +227,22 @@
                     <dd class="font-mono text-gray-900">{{ facture.clientSirenFormatted }}</dd>
                 </div>
                 {% endif %}
+                {% if facture.clientSiret %}
+                <div class="flex justify-between">
+                    <dt class="text-gray-500">SIRET</dt>
+                    <dd class="font-mono text-gray-900">{{ facture.clientSiretFormatted }}</dd>
+                </div>
+                {% endif %}
+                {% if facture.clientTva %}
+                <div class="flex justify-between">
+                    <dt class="text-gray-500">N° TVA</dt>
+                    <dd class="font-mono text-gray-900">{{ facture.clientTva }}</dd>
+                </div>
+                {% endif %}
+                <div class="flex justify-between">
+                    <dt class="text-gray-500">Pays</dt>
+                    <dd class="font-mono text-gray-900">{{ facture.clientCodePays }}</dd>
+                </div>
                 {% if facture.clientAdresse %}
                 <div>
                     <dt class="text-gray-500 mb-1">Adresse</dt>
@@ -330,7 +432,7 @@
             <div class="flex items-start gap-4">
                 <div class="w-24 text-sm text-gray-500">Creation</div>
                 <div>
-                    <p class="text-gray-900">Facture creee en brouillon</p>
+                    <p class="text-gray-900">{{ typeLabel }} cree(e) en brouillon</p>
                     <p class="text-sm text-gray-500">{{ facture.createdAt|date('d/m/Y H:i') }}</p>
                 </div>
             </div>
@@ -338,7 +440,7 @@
             <div class="flex items-start gap-4">
                 <div class="w-24 text-sm text-gray-500">Validation</div>
                 <div>
-                    <p class="text-gray-900">Facture validee</p>
+                    <p class="text-gray-900">{{ typeLabel }} valide(e)</p>
                     <p class="text-sm text-gray-500">{{ facture.dateValidation|date('d/m/Y H:i') }}</p>
                 </div>
             </div>
@@ -347,26 +449,92 @@
             <div class="flex items-start gap-4">
                 <div class="w-24 text-sm text-gray-500">Envoi</div>
                 <div>
-                    <p class="text-gray-900">Facture marquee comme envoyee</p>
+                    <p class="text-gray-900">{{ typeLabel }} marque(e) comme envoye(e)</p>
                     <p class="text-sm text-gray-500">{{ facture.dateEnvoi|date('d/m/Y H:i') }}</p>
                 </div>
             </div>
             {% endif %}
             {% if facture.datePaiement %}
             <div class="flex items-start gap-4">
-                <div class="w-24 text-sm text-gray-500">Paiement</div>
+                <div class="w-24 text-sm text-gray-500">{{ facture.isAvoir ? 'Remboursement' : 'Paiement' }}</div>
                 <div>
-                    <p class="text-gray-900">Facture marquee comme payee</p>
+                    <p class="text-gray-900">{{ typeLabel }} marque(e) comme {{ facture.isAvoir ? 'rembourse(e)' : 'paye(e)' }}</p>
                     <p class="text-sm text-gray-500">{{ facture.datePaiement|date('d/m/Y H:i') }}</p>
                 </div>
             </div>
             {% endif %}
         </div>
     </div>
+
+    {# Tab: Avoirs lies #}
+    {% if facture.isFacture and facture.avoirs|length > 0 %}
+    <div x-show="activeTab === 'avoirs'" class="bg-white rounded-lg shadow">
+        <div class="p-4 border-b border-gray-200">
+            <h3 class="text-lg font-medium text-gray-900">Avoirs lies a cette facture</h3>
+            <div class="mt-2 flex gap-4 text-sm">
+                <span class="text-gray-500">Total facture: <span class="font-medium text-gray-900">{{ facture.totalTtc|number_format(2, ',', ' ') }} &euro;</span></span>
+                <span class="text-gray-500">Total avoirs: <span class="font-medium text-orange-600">{{ facture.totalAvoirs|number_format(2, ',', ' ') }} &euro;</span></span>
+                <span class="text-gray-500">Reste du: <span class="font-bold text-gray-900">{{ facture.montantRestant|number_format(2, ',', ' ') }} &euro;</span></span>
+            </div>
+        </div>
+        <div class="overflow-x-auto">
+            <table class="w-full">
+                <thead class="bg-gray-50">
+                    <tr>
+                        <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Numero</th>
+                        <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Date</th>
+                        <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Motif</th>
+                        <th class="px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase">Montant TTC</th>
+                        <th class="px-6 py-3 text-center text-xs font-medium text-gray-500 uppercase">Statut</th>
+                        <th class="px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase">Actions</th>
+                    </tr>
+                </thead>
+                <tbody class="divide-y divide-gray-200">
+                    {% for avoir in facture.avoirs %}
+                    <tr class="hover:bg-gray-50">
+                        <td class="px-6 py-4 whitespace-nowrap">
+                            <a href="{{ path('app_facturation_show', {id: avoir.id}) }}" class="text-blue-600 hover:underline font-medium">
+                                {{ avoir.numero ?? 'Brouillon #' ~ avoir.id }}
+                            </a>
+                        </td>
+                        <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
+                            {{ avoir.dateFacture|date('d/m/Y') }}
+                        </td>
+                        <td class="px-6 py-4 text-sm text-gray-500">
+                            {{ avoir.motifAvoir|length > 50 ? avoir.motifAvoir|slice(0, 50) ~ '...' : avoir.motifAvoir }}
+                        </td>
+                        <td class="px-6 py-4 whitespace-nowrap text-right text-sm font-medium text-orange-600">
+                            {{ avoir.totalTtc|number_format(2, ',', ' ') }} &euro;
+                        </td>
+                        <td class="px-6 py-4 whitespace-nowrap text-center">
+                            {% if avoir.statut == 'brouillon' %}
+                                <span class="inline-flex px-2 py-1 text-xs font-semibold rounded-full bg-gray-100 text-gray-800">Brouillon</span>
+                            {% elseif avoir.statut == 'validee' %}
+                                <span class="inline-flex px-2 py-1 text-xs font-semibold rounded-full bg-blue-100 text-blue-800">Valide</span>
+                            {% elseif avoir.statut == 'remboursee' %}
+                                <span class="inline-flex px-2 py-1 text-xs font-semibold rounded-full bg-green-100 text-green-800">Rembourse</span>
+                            {% endif %}
+                        </td>
+                        <td class="px-6 py-4 whitespace-nowrap text-right text-sm">
+                            <a href="{{ path('app_facturation_show', {id: avoir.id}) }}" class="text-gray-600 hover:text-gray-900" title="Voir">
+                                <svg class="w-5 h-5 inline" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"></path>
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z"></path>
+                                </svg>
+                            </a>
+                            <a href="{{ path('app_facturation_pdf', {id: avoir.id}) }}" target="_blank" class="text-gray-600 hover:text-gray-900 ml-2" title="PDF">
+                                <svg class="w-5 h-5 inline" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 10v6m0 0l-3-3m3 3l3-3m2 8H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"></path>
+                                </svg>
+                            </a>
+                        </td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </div>
+    {% endif %}
 </div>
 {% endblock %}
 
-{% block javascripts %}
-{{ parent() }}
-<script src="https://cdn.jsdelivr.net/npm/alpinejs@3.x.x/dist/cdn.min.js" defer></script>
-{% endblock %}

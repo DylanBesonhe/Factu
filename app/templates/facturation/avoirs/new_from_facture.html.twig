@@ -1,0 +1,117 @@
+{% extends 'layout.html.twig' %}
+
+{% block title %}Nouvel avoir - Factu{% endblock %}
+
+{% block page_title %}Creer un avoir{% endblock %}
+
+{% block breadcrumbs %}
+    {% set breadcrumbs = [
+        {label: 'Facturation', path: path('app_facturation_workflow')},
+        {label: facture.numero, path: path('app_facturation_show', {id: facture.id})},
+        {label: 'Nouvel avoir'}
+    ] %}
+    {% include 'components/_breadcrumbs.html.twig' %}
+{% endblock %}
+
+{% block page_actions %}
+    <a href="{{ path('app_facturation_show', {id: facture.id}) }}" class="px-4 py-2 text-sm text-gray-600 hover:bg-gray-100 rounded-lg">
+        Annuler
+    </a>
+{% endblock %}
+
+{% block content %}
+<div class="max-w-2xl mx-auto">
+    {# Resume de la facture #}
+    <div class="bg-white rounded-lg shadow mb-6">
+        <div class="p-4 border-b border-gray-200 bg-gray-50">
+            <h2 class="text-lg font-medium text-gray-900">Facture concernee</h2>
+        </div>
+        <div class="p-4">
+            <dl class="grid grid-cols-2 gap-4 text-sm">
+                <div>
+                    <dt class="text-gray-500">Numero</dt>
+                    <dd class="font-medium text-gray-900">{{ facture.numero }}</dd>
+                </div>
+                <div>
+                    <dt class="text-gray-500">Date</dt>
+                    <dd class="text-gray-900">{{ facture.dateFacture|date('d/m/Y') }}</dd>
+                </div>
+                <div>
+                    <dt class="text-gray-500">Client</dt>
+                    <dd class="text-gray-900">{{ facture.clientRaisonSociale }}</dd>
+                </div>
+                <div>
+                    <dt class="text-gray-500">Montant TTC</dt>
+                    <dd class="font-medium text-gray-900">{{ facture.totalTtc|number_format(2, ',', ' ') }} &euro;</dd>
+                </div>
+            </dl>
+            {% if facture.avoirs|length > 0 %}
+            <div class="mt-4 p-3 bg-orange-50 border border-orange-200 rounded-lg">
+                <p class="text-sm text-orange-800">
+                    <strong>Avoirs existants:</strong> {{ facture.totalAvoirs|number_format(2, ',', ' ') }} &euro;<br>
+                    <strong>Montant disponible pour nouvel avoir:</strong> {{ montantDisponible|number_format(2, ',', ' ') }} &euro;
+                </p>
+            </div>
+            {% endif %}
+        </div>
+    </div>
+
+    {# Formulaire #}
+    <div class="bg-white rounded-lg shadow">
+        <div class="p-6 border-b border-gray-200">
+            <h2 class="text-lg font-medium text-gray-900">Informations de l'avoir</h2>
+            <p class="mt-1 text-sm text-gray-500">Selectionnez le type d'avoir et indiquez le motif.</p>
+        </div>
+
+        {{ form_start(form, {'attr': {'class': 'p-6 space-y-6'}}) }}
+            <div>
+                {{ form_label(form.type, null, {'label_attr': {'class': 'block text-sm font-medium text-gray-700 mb-3'}}) }}
+                <div class="space-y-3">
+                    {% for child in form.type %}
+                        <div class="flex items-center">
+                            {{ form_widget(child, {'attr': {'class': 'h-4 w-4 text-blue-600 focus:ring-blue-500 border-gray-300'}}) }}
+                            <label for="{{ child.vars.id }}" class="ml-3 block text-sm text-gray-900">
+                                {{ child.vars.label }}
+                            </label>
+                        </div>
+                    {% endfor %}
+                </div>
+                {{ form_errors(form.type) }}
+            </div>
+
+            <div>
+                {{ form_label(form.motif, null, {'label_attr': {'class': 'block text-sm font-medium text-gray-700 mb-1'}}) }}
+                {{ form_widget(form.motif) }}
+                {{ form_errors(form.motif) }}
+                <p class="mt-1 text-sm text-gray-500">Expliquez la raison de cet avoir</p>
+            </div>
+
+            <div class="bg-blue-50 border border-blue-200 rounded-lg p-4">
+                <div class="flex">
+                    <svg class="w-5 h-5 text-blue-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path>
+                    </svg>
+                    <div class="ml-3">
+                        <h3 class="text-sm font-medium text-blue-800">Information</h3>
+                        <div class="mt-2 text-sm text-blue-700">
+                            <ul class="list-disc list-inside space-y-1">
+                                <li><strong>Avoir total:</strong> Copie toutes les lignes de la facture. La facture passera en statut "Annulee".</li>
+                                <li><strong>Avoir partiel:</strong> Cree un avoir vide. Ajoutez ensuite les lignes a crediter.</li>
+                            </ul>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="flex justify-end gap-4 pt-4 border-t border-gray-200">
+                <a href="{{ path('app_facturation_show', {id: facture.id}) }}" class="px-4 py-2 text-sm text-gray-600 hover:bg-gray-100 rounded-lg">
+                    Annuler
+                </a>
+                <button type="submit" class="px-4 py-2 text-sm text-white bg-orange-600 hover:bg-orange-700 rounded-lg">
+                    Creer l'avoir
+                </button>
+            </div>
+        {{ form_end(form) }}
+    </div>
+</div>
+{% endblock %}

@@ -2,7 +2,7 @@
 <html lang="fr">
 <head>
     <meta charset="UTF-8">
-    <title>Facture {{ facture.numero ?? 'Brouillon' }}</title>
+    <title>{{ facture.isAvoir ? 'Avoir' : 'Facture' }} {{ facture.numero ?? 'Brouillon' }}</title>
     <style>
         @page {
             margin: 15mm;
@@ -265,11 +265,17 @@
             </div>
         </div>
         <div class="header-right">
-            <div class="invoice-title">FACTURE</div>
+            <div class="invoice-title">{{ facture.isAvoir ? "FACTURE D'AVOIR" : 'FACTURE' }}</div>
             <div class="invoice-number">N° {{ facture.numero ?? 'BROUILLON' }}</div>
             <div class="invoice-date">
                 Date : {{ facture.dateFacture|date('d/m/Y') }}
             </div>
+            {% if facture.isAvoir and facture.factureParente %}
+            <div class="invoice-date" style="margin-top: 8px; font-size: 9pt;">
+                Avoir sur facture : {{ facture.factureParente.numero }}<br>
+                du {{ facture.factureParente.dateFacture|date('d/m/Y') }}
+            </div>
+            {% endif %}
         </div>
     </div>
 
@@ -287,12 +293,29 @@
         </div>
     </div>
 
-    {# Periode #}
+    {# Motif de l'avoir #}
+    {% if facture.isAvoir and facture.motifAvoir %}
     <div class="section">
-        <div class="period-box">
-            <strong>Periode :</strong> du {{ facture.periodeDebut|date('d/m/Y') }} au {{ facture.periodeFin|date('d/m/Y') }}
+        <div class="section-title">Motif de l'avoir</div>
+        <div class="client-box" style="background-color: #fff9e6; border-color: #f0e0a0;">
+            <p style="font-size: 10pt; color: #666;">{{ facture.motifAvoir|nl2br }}</p>
         </div>
     </div>
+    {% endif %}
+
+    {# Periode #}
+    {% if facture.periodeDebut and facture.periodeFin %}
+    <div class="section">
+        <div class="period-box">
+            <strong>{{ facture.isAvoir ? 'Date' : 'Periode' }} :</strong>
+            {% if facture.periodeDebut|date('Y-m-d') == facture.periodeFin|date('Y-m-d') %}
+                {{ facture.periodeDebut|date('d/m/Y') }}
+            {% else %}
+                du {{ facture.periodeDebut|date('d/m/Y') }} au {{ facture.periodeFin|date('d/m/Y') }}
+            {% endif %}
+        </div>
+    </div>
+    {% endif %}
 
     {# Lignes de facture #}
     <div class="section">
@@ -357,20 +380,24 @@
                     <td class="value">{{ facture.totalTva|number_format(2, ',', ' ') }} &euro;</td>
                 </tr>
                 <tr class="total-ttc">
-                    <td class="label">Total TTC</td>
+                    <td class="label">{{ facture.isAvoir ? 'TOTAL A DEDUIRE' : 'Total TTC' }}</td>
                     <td class="value">{{ facture.totalTtc|number_format(2, ',', ' ') }} &euro;</td>
                 </tr>
             </table>
         </div>
     </div>
 
-    {# Conditions de paiement #}
+    {# Conditions de paiement / remboursement #}
     <div class="payment-box">
-        <h4>Conditions de paiement</h4>
+        <h4>{{ facture.isAvoir ? 'Modalites de remboursement' : 'Conditions de paiement' }}</h4>
         <div class="payment-info">
             <div class="payment-col">
+                {% if facture.isAvoir %}
+                <div class="payment-label">Ce montant sera deduit de vos prochaines factures ou rembourse.</div>
+                {% else %}
                 <div class="payment-label">Date d'echeance</div>
                 <div class="payment-value">{{ facture.dateEcheance|date('d/m/Y') }}</div>
+                {% endif %}
             </div>
             <div class="payment-col">
                 {% if facture.emetteurIban %}

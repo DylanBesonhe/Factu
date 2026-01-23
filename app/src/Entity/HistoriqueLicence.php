@@ -100,4 +100,12 @@ class HistoriqueLicence
     {
         $this->createdAt = new \DateTimeImmutable();
     }
+
+    /**
+     * Alias pour dateEffet (utilise dans le template)
+     */
+    public function getMois(): ?\DateTimeInterface
+    {
+        return $this->dateEffet;
+    }
 }

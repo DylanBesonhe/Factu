@@ -48,7 +48,7 @@
                     <th class="px-6 py-3">Client</th>
                     <th class="px-6 py-3">Instance</th>
                     <th class="px-6 py-3">Périodicité</th>
-                    <th class="px-6 py-3">Licences</th>
+                    <th class="px-6 py-3">Lic. init.</th>
                     <th class="px-6 py-3">Total HT</th>
                     <th class="px-6 py-3">Statut</th>
                     <th class="px-6 py-3">Actions</th>
@@ -58,10 +58,12 @@
                 {% for contrat in contrats %}
                     <tr class="bg-white border-b hover:bg-gray-50">
                         <td class="px-6 py-4 font-mono text-gray-900">
-                            {{ contrat.numero }}
-                            {% if contrat.factureParticuliere %}
-                                <span class="ml-1 px-1.5 py-0.5 text-xs font-medium text-orange-800 bg-orange-100 rounded" title="Facture particulière">!</span>
-                            {% endif %}
+                            <div class="flex items-center gap-1">
+                                {{ contrat.numero }}
+                                {% if contrat.factureParticuliere %}
+                                    {% include 'components/_facture_particuliere_icon.html.twig' with {description: contrat.factureParticuliereDescription} %}
+                                {% endif %}
+                            </div>
                         </td>
                         <td class="px-6 py-4">
                             <a href="{{ path('app_admin_clients_show', {id: contrat.client.id}) }}" class="text-blue-600 hover:text-blue-900">

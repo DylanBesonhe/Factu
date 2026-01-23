@@ -46,8 +46,18 @@
                 </div>
 
                 <h3 class="text-lg font-medium text-gray-900 mb-4 mt-6">Options</h3>
-                <div class="space-y-4">
-                    {{ form_row(form.factureParticuliere) }}
+                <div x-data="{ factureParticuliere: false }">
+                    <div class="flex items-center gap-4">
+                        <div class="flex items-center">
+                            {{ form_widget(form.factureParticuliere) }}
+                            <label for="{{ form.factureParticuliere.vars.id }}" class="ml-2 text-sm font-medium text-gray-900">
+                                Facture particuliere
+                            </label>
+                        </div>
+                        <div x-show="factureParticuliere" x-transition class="flex-1">
+                            {{ form_widget(form.factureParticuliereDescription) }}
+                        </div>
+                    </div>
                 </div>
             </div>
         </div>

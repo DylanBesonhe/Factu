@@ -64,6 +64,9 @@ class Contrat
     #[ORM\Column]
     private bool $factureParticuliere = false;
 
+    #[ORM\Column(length: 255, nullable: true)]
+    private ?string $factureParticuliereDescription = null;
+
     #[ORM\Column(type: Types::TEXT, nullable: true)]
     private ?string $commentaireFacture = null;
 
@@ -224,6 +227,17 @@ class Contrat
     public function setFactureParticuliere(bool $factureParticuliere): static
     {
         $this->factureParticuliere = $factureParticuliere;
+        return $this;
+    }
+
+    public function getFactureParticuliereDescription(): ?string
+    {
+        return $this->factureParticuliereDescription;
+    }
+
+    public function setFactureParticuliereDescription(?string $factureParticuliereDescription): static
+    {
+        $this->factureParticuliereDescription = $factureParticuliereDescription;
         return $this;
     }
 

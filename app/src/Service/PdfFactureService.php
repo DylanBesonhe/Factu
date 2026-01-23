@@ -39,6 +39,7 @@ class PdfFactureService
     public function getFilename(Facture $facture): string
     {
         $numero = $facture->getNumero() ?? 'brouillon-' . $facture->getId();
-        return 'facture-' . $numero . '.pdf';
+        $prefix = $facture->isAvoir() ? 'avoir' : 'facture';
+        return $prefix . '-' . $numero . '.pdf';
     }
 }

@@ -5,10 +5,12 @@ namespace App\Controller;
 use App\Entity\Contrat;
 use App\Entity\ContratEvenement;
 use App\Entity\ContratFichier;
+use App\Entity\HistoriqueLicence;
 use App\Entity\Instance;
 use App\Entity\LigneContrat;
 use App\Form\ContratEvenementType;
 use App\Form\ContratType;
+use App\Form\HistoriqueLicenceType;
 use App\Form\InstanceType;
 use App\Form\LigneContratType;
 use App\Repository\ContratEvenementRepository;
@@ -121,6 +123,7 @@ class ContratController extends AbstractController
     ): Response {
         $ligneForm = $this->createForm(LigneContratType::class, new LigneContrat());
         $evenementForm = $this->createForm(ContratEvenementType::class, new ContratEvenement());
+        $licenceForm = $this->createForm(HistoriqueLicenceType::class, new HistoriqueLicence());
 
         $historiqueLicences = $historiqueLicenceRepository->findLast12Months($contrat->getId());
 
@@ -128,6 +131,7 @@ class ContratController extends AbstractController
             'contrat' => $contrat,
             'ligneForm' => $ligneForm,
             'evenementForm' => $evenementForm,
+            'licenceForm' => $licenceForm,
             'historiqueLicences' => $historiqueLicences,
         ]);
     }
@@ -377,6 +381,49 @@ class ContratController extends AbstractController
             $entityManager->flush();
 
             $this->addFlash('success', 'Statut du contrat modifie avec succes.');
+        }
+
+        return $this->redirectToRoute('app_contrat_show', ['id' => $contrat->getId()]);
+    }
+
+    #[Route('/{id}/licences/new', name: 'app_contrat_licence_new', methods: ['POST'])]
+    public function addLicence(Request $request, Contrat $contrat, EntityManagerInterface $entityManager): Response
+    {
+        $historique = new HistoriqueLicence();
+        $form = $this->createForm(HistoriqueLicenceType::class, $historique);
+        $form->handleRequest($request);
+
+        if ($form->isSubmitted() && $form->isValid()) {
+            $historique->setContrat($contrat);
+            $historique->setSource('manuel');
+            $entityManager->persist($historique);
+            $entityManager->flush();
+
+            $this->addFlash('success', 'Nombre de licences mis a jour avec succes.');
+        } else {
+            $this->addFlash('error', 'Erreur lors de la mise a jour des licences.');
+        }
+
+        return $this->redirectToRoute('app_contrat_show', ['id' => $contrat->getId()]);
+    }
+
+    #[Route('/{id}/licences/{licenceId}/delete', name: 'app_contrat_licence_delete', methods: ['POST'])]
+    public function deleteLicence(
+        Request $request,
+        Contrat $contrat,
+        int $licenceId,
+        HistoriqueLicenceRepository $historiqueLicenceRepository,
+        EntityManagerInterface $entityManager
+    ): Response {
+        $historique = $historiqueLicenceRepository->find($licenceId);
+
+        if ($historique && $historique->getContrat() === $contrat) {
+            if ($this->isCsrfTokenValid('delete_licence' . $licenceId, $request->request->get('_token'))) {
+                $entityManager->remove($historique);
+                $entityManager->flush();
+
+                $this->addFlash('success', 'Entree supprimee avec succes.');
+            }
         }
 
         return $this->redirectToRoute('app_contrat_show', ['id' => $contrat->getId()]);

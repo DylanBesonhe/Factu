@@ -34,6 +34,17 @@ class Client
     #[AppAssert\Siren]
     private ?string $siren = null;
 
+    #[ORM\Column(length: 14, nullable: true)]
+    #[AppAssert\Siret]
+    private ?string $siret = null;
+
+    #[ORM\Column(length: 15, nullable: true)]
+    #[AppAssert\Tva]
+    private ?string $tva = null;
+
+    #[ORM\Column(length: 2, options: ['default' => 'FR'])]
+    private string $codePaysTva = 'FR';
+
     #[ORM\Column(length: 34, nullable: true)]
     #[AppAssert\Iban]
     private ?string $iban = null;
@@ -135,6 +146,39 @@ class Client
     public function setSiren(?string $siren): static
     {
         $this->siren = $siren;
+        return $this;
+    }
+
+    public function getSiret(): ?string
+    {
+        return $this->siret;
+    }
+
+    public function setSiret(?string $siret): static
+    {
+        $this->siret = $siret;
+        return $this;
+    }
+
+    public function getTva(): ?string
+    {
+        return $this->tva;
+    }
+
+    public function setTva(?string $tva): static
+    {
+        $this->tva = $tva;
+        return $this;
+    }
+
+    public function getCodePaysTva(): string
+    {
+        return $this->codePaysTva;
+    }
+
+    public function setCodePaysTva(string $codePaysTva): static
+    {
+        $this->codePaysTva = $codePaysTva;
         return $this;
     }
 

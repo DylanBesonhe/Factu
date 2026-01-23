@@ -7,6 +7,7 @@ use Symfony\Component\Form\AbstractType;
 use Symfony\Component\Form\Extension\Core\Type\DateType;
 use Symfony\Component\Form\Extension\Core\Type\NumberType;
 use Symfony\Component\Form\Extension\Core\Type\TextareaType;
+use Symfony\Component\Form\Extension\Core\Type\TextType;
 use Symfony\Component\Form\FormBuilderInterface;
 use Symfony\Component\OptionsResolver\OptionsResolver;
 
@@ -34,6 +35,15 @@ class FactureType extends AbstractType
                 'label' => 'Fin de periode',
                 'widget' => 'single_text',
                 'attr' => ['class' => 'w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-blue-500 focus:border-blue-500'],
+            ])
+            ->add('referenceCommande', TextType::class, [
+                'label' => 'Reference commande (bon de commande)',
+                'required' => false,
+                'attr' => [
+                    'class' => 'w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-blue-500 focus:border-blue-500',
+                    'placeholder' => 'N° du bon de commande client',
+                    'maxlength' => 50,
+                ],
             ])
             ->add('remiseGlobale', NumberType::class, [
                 'label' => 'Remise globale (%)',

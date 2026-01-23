@@ -104,9 +104,14 @@
                 {% for facture in factures %}
                     <tr class="bg-white border-b hover:bg-gray-50">
                         <td class="px-6 py-4 font-medium text-gray-900">
-                            <a href="{{ path('app_facturation_show', {id: facture.id}) }}" class="text-blue-600 hover:underline">
-                                {{ facture.numero ?? 'Brouillon #' ~ facture.id }}
-                            </a>
+                            <div class="flex items-center gap-1">
+                                <a href="{{ path('app_facturation_show', {id: facture.id}) }}" class="text-blue-600 hover:underline">
+                                    {{ facture.numero ?? 'Brouillon #' ~ facture.id }}
+                                </a>
+                                {% if facture.contrat and facture.contrat.factureParticuliere %}
+                                    {% include 'components/_facture_particuliere_icon.html.twig' with {description: facture.contrat.factureParticuliereDescription} %}
+                                {% endif %}
+                            </div>
                         </td>
                         <td class="px-6 py-4">
                             <div class="font-medium text-gray-900">{{ facture.clientRaisonSociale }}</div>

@@ -108,9 +108,20 @@ class ContratType extends AbstractType
                 'attr' => ['class' => 'w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-blue-500 focus:border-blue-500'],
             ])
             ->add('factureParticuliere', CheckboxType::class, [
-                'label' => 'Facture particuliere (necessite attention)',
+                'label' => 'Facture particuliere',
                 'required' => false,
-                'attr' => ['class' => 'w-4 h-4 text-blue-600 bg-gray-100 border-gray-300 rounded focus:ring-blue-500'],
+                'attr' => [
+                    'class' => 'w-4 h-4 text-blue-600 bg-gray-100 border-gray-300 rounded focus:ring-blue-500',
+                    'x-model' => 'factureParticuliere',
+                ],
+            ])
+            ->add('factureParticuliereDescription', TextType::class, [
+                'label' => 'Description de la particularite',
+                'required' => false,
+                'attr' => [
+                    'class' => 'w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-blue-500 focus:border-blue-500',
+                    'placeholder' => 'Decrire la particularite...',
+                ],
             ])
             ->add('commentaireFacture', TextareaType::class, [
                 'label' => 'Commentaire facture',

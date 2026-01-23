@@ -29,6 +29,9 @@ class ParametreFacturation
     #[Assert\Positive(message: 'Le prochain numero doit etre positif')]
     private int $prochainNumero = 1;
 
+    #[ORM\Column(nullable: true)]
+    private ?int $anneeNumero = null;
+
     #[ORM\Column]
     #[Assert\Positive(message: "Le delai d'echeance doit etre positif")]
     private int $delaiEcheance = 30;
@@ -86,6 +89,17 @@ class ParametreFacturation
     public function incrementProchainNumero(): static
     {
         $this->prochainNumero++;
+        return $this;
+    }
+
+    public function getAnneeNumero(): ?int
+    {
+        return $this->anneeNumero;
+    }
+
+    public function setAnneeNumero(?int $anneeNumero): static
+    {
+        $this->anneeNumero = $anneeNumero;
         return $this;
     }
 
@@ -152,7 +166,7 @@ class ParametreFacturation
     }
 
     /**
-     * Genere un numero de facture selon le format configure
+     * Genere un numero de facture ou d'avoir selon le format configure
      * Variables supportees:
      * - {YYYY}: Annee sur 4 chiffres
      * - {YY}: Annee sur 2 chiffres
@@ -160,15 +174,37 @@ class ParametreFacturation
      * - {SEQ:N}: Sequence sur N chiffres
      * - {CODE}: Code de l'emetteur
      * - {SIREN}: SIREN de l'emetteur
+     * - {TYPE}: Prefixe du type (FAC ou AV)
+     *
+     * @param string $type 'facture' ou 'avoir'
+     * @param \DateTimeInterface|null $dateReference Date de reference pour l'annee (null = aujourd'hui)
      */
-    public function genererNumero(): string
+    public function genererNumero(string $type = 'facture', ?\DateTimeInterface $dateReference = null): string
     {
+        $dateReference = $dateReference ?? new \DateTime();
+        $annee = (int) $dateReference->format('Y');
+
+        // Verifier si l'annee a change - reset du compteur
+        if ($this->anneeNumero !== null && $this->anneeNumero !== $annee) {
+            $this->prochainNumero = 1;
+        }
+        $this->anneeNumero = $annee;
+
         $numero = $this->formatNumero;
 
-        // Variables de date
-        $numero = str_replace('{YYYY}', date('Y'), $numero);
-        $numero = str_replace('{YY}', date('y'), $numero);
-        $numero = str_replace('{MM}', date('m'), $numero);
+        // Prefixe selon le type
+        $prefixe = $type === 'avoir' ? 'AV' : 'FAC';
+        $numero = str_replace('{TYPE}', $prefixe, $numero);
+
+        // Remplacer aussi FA- par le bon prefixe pour compatibilite
+        if (str_starts_with($numero, 'FA-')) {
+            $numero = $prefixe . substr($numero, 2);
+        }
+
+        // Variables de date - utiliser la date de reference
+        $numero = str_replace('{YYYY}', $dateReference->format('Y'), $numero);
+        $numero = str_replace('{YY}', $dateReference->format('y'), $numero);
+        $numero = str_replace('{MM}', $dateReference->format('m'), $numero);
 
         // Variables de l'emetteur
         if ($this->emetteur) {
@@ -194,9 +230,21 @@ class ParametreFacturation
 
     /**
      * Genere un apercu du prochain numero sans incrementer
+     * @param string $type 'facture' ou 'avoir'
+     * @param \DateTimeInterface|null $dateReference Date de reference pour l'annee (null = aujourd'hui)
      */
-    public function getApercuNumero(): string
+    public function getApercuNumero(string $type = 'facture', ?\DateTimeInterface $dateReference = null): string
     {
-        return $this->genererNumero();
+        // Pour l'apercu, on ne veut pas modifier les valeurs
+        $anneeOriginale = $this->anneeNumero;
+        $numeroOriginal = $this->prochainNumero;
+
+        $numero = $this->genererNumero($type, $dateReference);
+
+        // Restaurer les valeurs originales
+        $this->anneeNumero = $anneeOriginale;
+        $this->prochainNumero = $numeroOriginal;
+
+        return $numero;
     }
 }

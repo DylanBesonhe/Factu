@@ -50,10 +50,10 @@ class ContratControllerTest extends WebTestCase
         $client = static::createClient();
         $this->loginAsAdmin($client);
 
-        $crawler = $client->request('GET', '/contrats?search=CTR-2026-001');
+        $crawler = $client->request('GET', '/contrats?search=CTR-2025-001');
 
         $this->assertResponseIsSuccessful();
-        $this->assertSelectorTextContains('table', 'CTR-2026-001');
+        $this->assertSelectorTextContains('table', 'CTR-2025-001');
     }
 
     public function testContratCreateFormIsAccessible(): void
@@ -73,12 +73,12 @@ class ContratControllerTest extends WebTestCase
         $this->loginAsAdmin($client);
 
         $contratRepository = static::getContainer()->get(ContratRepository::class);
-        $testContrat = $contratRepository->findOneBy(['numero' => 'CTR-2026-001']);
+        $testContrat = $contratRepository->findOneBy(['numero' => 'CTR-2025-001']);
 
         $client->request('GET', '/contrats/' . $testContrat->getId());
 
         $this->assertResponseIsSuccessful();
-        $this->assertSelectorTextContains('h1', 'CTR-2026-001');
+        $this->assertSelectorTextContains('h1', 'CTR-2025-001');
     }
 
     public function testContratEditFormIsAccessible(): void
@@ -87,7 +87,7 @@ class ContratControllerTest extends WebTestCase
         $this->loginAsAdmin($client);
 
         $contratRepository = static::getContainer()->get(ContratRepository::class);
-        $testContrat = $contratRepository->findOneBy(['numero' => 'CTR-2026-001']);
+        $testContrat = $contratRepository->findOneBy(['numero' => 'CTR-2025-001']);
 
         $client->request('GET', '/contrats/' . $testContrat->getId() . '/edit');
 

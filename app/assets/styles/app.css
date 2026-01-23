@@ -34,3 +34,10 @@
 [x-cloak] {
     display: none !important;
 }
+
+/* Sidebar spacing - ensures content is offset when sidebar is visible */
+@media (min-width: 640px) {
+    .sidebar-content {
+        margin-left: 4rem; /* 64px = w-16 */
+    }
+}

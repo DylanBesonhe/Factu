@@ -97,6 +97,22 @@
                             <dd class="text-sm font-medium text-gray-900 font-mono">{{ client.siren }}</dd>
                         </div>
                         {% endif %}
+                        {% if client.siret %}
+                        <div>
+                            <dt class="text-sm text-gray-500">SIRET</dt>
+                            <dd class="text-sm font-medium text-gray-900 font-mono">{{ client.siret }}</dd>
+                        </div>
+                        {% endif %}
+                        {% if client.tva %}
+                        <div>
+                            <dt class="text-sm text-gray-500">N° TVA intracommunautaire</dt>
+                            <dd class="text-sm font-medium text-gray-900 font-mono">{{ client.tva }}</dd>
+                        </div>
+                        {% endif %}
+                        <div>
+                            <dt class="text-sm text-gray-500">Code pays</dt>
+                            <dd class="text-sm font-medium text-gray-900 font-mono">{{ client.codePaysTva }}</dd>
+                        </div>
                         {% if client.adresse %}
                         <div>
                             <dt class="text-sm text-gray-500">Adresse</dt>

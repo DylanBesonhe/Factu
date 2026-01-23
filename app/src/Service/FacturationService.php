@@ -180,6 +180,9 @@ class FacturationService
         $facture->setClientRaisonSociale($client->getRaisonSociale());
         $facture->setClientAdresse($client->getAdresse());
         $facture->setClientSiren($client->getSiren());
+        $facture->setClientSiret($client->getSiret());
+        $facture->setClientTva($client->getTva());
+        $facture->setClientCodePays($client->getCodePaysTva());
 
         // 5. Snapshot emetteur
         if ($versionEmetteur) {
@@ -231,7 +234,7 @@ class FacturationService
     }
 
     /**
-     * Valide une facture (brouillon -> validee)
+     * Valide une facture ou un avoir (brouillon -> validee)
      * C'est a ce moment que le numero definitif est attribue pour garantir une numerotation sans trou
      */
     public function validerFacture(Facture $facture): void
@@ -240,17 +243,59 @@ class FacturationService
             throw new \LogicException('Seule une facture en brouillon peut etre validee');
         }
 
-        // Attribuer le numero definitif au moment de la validation
-        $emetteur = $facture->getContrat()->getEmetteur();
+        // Determiner l'emetteur (depuis le contrat ou depuis les donnees snapshotees)
+        $emetteur = $facture->getContrat()?->getEmetteur();
+        if (!$emetteur) {
+            // Pour les factures sans contrat, trouver l'emetteur par defaut
+            $emetteur = $this->em->getRepository(\App\Entity\Emetteur::class)->findOneBy(['parDefaut' => true]);
+        }
+
+        if (!$emetteur) {
+            throw new \LogicException('Aucun emetteur trouve pour generer le numero');
+        }
+
         $parametres = $this->parametreFacturationRepository->getOrCreateForEmetteur($emetteur);
-        $numero = $parametres->genererNumero();
+        $numero = $parametres->genererNumero($facture->getType(), $facture->getDateFacture());
         $parametres->incrementProchainNumero();
 
         $facture->setNumero($numero);
         $facture->setStatut(Facture::STATUT_VALIDEE);
         $facture->setDateValidation(new \DateTime());
 
+        // Si c'est un avoir lie, verifier l'impact sur la facture parente
+        if ($facture->isAvoir() && $facture->getFactureParente()) {
+            $this->verifierImpactAvoirSurFacture($facture);
+        }
+
         $this->em->flush();
+    }
+
+    /**
+     * Verifie et applique l'impact d'un avoir sur sa facture parente
+     */
+    private function verifierImpactAvoirSurFacture(Facture $avoir): void
+    {
+        $factureParente = $avoir->getFactureParente();
+        if (!$factureParente) {
+            return;
+        }
+
+        // Calculer le total des avoirs (incluant celui-ci)
+        $totalAvoirs = '0.00';
+        foreach ($factureParente->getAvoirs() as $a) {
+            if ($a->getStatut() !== Facture::STATUT_BROUILLON) {
+                $totalAvoirs = bcadd($totalAvoirs, $a->getTotalTtc(), 2);
+            }
+        }
+        // Ajouter l'avoir actuel s'il n'est pas encore compte
+        if ($avoir->getStatut() === Facture::STATUT_BROUILLON) {
+            $totalAvoirs = bcadd($totalAvoirs, $avoir->getTotalTtc(), 2);
+        }
+
+        // Si le total des avoirs >= total facture, annuler la facture
+        if (bccomp($totalAvoirs, $factureParente->getTotalTtc(), 2) >= 0) {
+            $factureParente->setStatut(Facture::STATUT_ANNULEE);
+        }
     }
 
     /**
@@ -311,5 +356,235 @@ class FacturationService
 
         $facture->recalculerTotaux();
         $this->em->flush();
+    }
+
+    /**
+     * Cree une facture ponctuelle (sans contrat ou avec contrat optionnel)
+     */
+    public function creerFactureManuelle(
+        \App\Entity\Client $client,
+        ?\App\Entity\Emetteur $emetteur = null,
+        ?\App\Entity\Contrat $contrat = null
+    ): Facture {
+        // Si contrat fourni, utiliser son emetteur
+        if ($contrat) {
+            $emetteur = $contrat->getEmetteur();
+        }
+
+        // Sinon, utiliser l'emetteur par defaut
+        if (!$emetteur) {
+            $emetteur = $this->em->getRepository(\App\Entity\Emetteur::class)->findOneBy(['parDefaut' => true]);
+        }
+
+        if (!$emetteur) {
+            throw new \LogicException('Aucun emetteur disponible');
+        }
+
+        $versionEmetteur = $emetteur->getVersionActive();
+        $parametres = $this->parametreFacturationRepository->getOrCreateForEmetteur($emetteur);
+
+        $facture = new Facture();
+        $facture->setType(Facture::TYPE_FACTURE);
+        $facture->setContrat($contrat);
+
+        // Snapshot client
+        $facture->setClientCode($client->getCode());
+        $facture->setClientRaisonSociale($client->getRaisonSociale());
+        $facture->setClientAdresse($client->getAdresse());
+        $facture->setClientSiren($client->getSiren());
+        $facture->setClientSiret($client->getSiret());
+        $facture->setClientTva($client->getTva());
+        $facture->setClientCodePays($client->getCodePaysTva());
+
+        // Snapshot emetteur
+        if ($versionEmetteur) {
+            $facture->setEmetteurRaisonSociale($versionEmetteur->getRaisonSociale());
+            $facture->setEmetteurAdresse($versionEmetteur->getAdresse());
+            $facture->setEmetteurSiren($versionEmetteur->getSiren());
+            $facture->setEmetteurTva($versionEmetteur->getTva());
+            $facture->setEmetteurIban($versionEmetteur->getIban());
+            $facture->setEmetteurBic($versionEmetteur->getBic());
+        }
+
+        // Dates
+        $dateFacture = new \DateTime();
+        $facture->setDateFacture($dateFacture);
+        $dateEcheance = (clone $dateFacture)->modify('+' . $parametres->getDelaiEcheance() . ' days');
+        $facture->setDateEcheance($dateEcheance);
+
+        // Periode = date facture pour les ponctuelles
+        $facture->setPeriodeDebut($dateFacture);
+        $facture->setPeriodeFin($dateFacture);
+
+        // Mentions legales
+        $facture->setMentionsLegales($parametres->getMentionsLegales());
+
+        $this->em->persist($facture);
+        $this->em->flush();
+
+        return $facture;
+    }
+
+    /**
+     * Cree un avoir lie a une facture existante
+     * @param bool $total Si true, copie toutes les lignes. Sinon, l'avoir est vide.
+     */
+    public function creerAvoirFromFacture(Facture $factureParente, bool $total = true, ?string $motif = null): Facture
+    {
+        // Verifier que la facture parente peut avoir un avoir
+        if ($factureParente->isAvoir()) {
+            throw new \LogicException('Impossible de creer un avoir sur un avoir');
+        }
+
+        $statutsAutorises = [Facture::STATUT_VALIDEE, Facture::STATUT_ENVOYEE, Facture::STATUT_PAYEE];
+        if (!in_array($factureParente->getStatut(), $statutsAutorises)) {
+            throw new \LogicException('Un avoir ne peut etre cree que sur une facture validee, envoyee ou payee');
+        }
+
+        $avoir = new Facture();
+        $avoir->setType(Facture::TYPE_AVOIR);
+        $avoir->setFactureParente($factureParente);
+        $avoir->setContrat($factureParente->getContrat());
+        $avoir->setMotifAvoir($motif);
+
+        // Copier le snapshot client
+        $avoir->setClientCode($factureParente->getClientCode());
+        $avoir->setClientRaisonSociale($factureParente->getClientRaisonSociale());
+        $avoir->setClientAdresse($factureParente->getClientAdresse());
+        $avoir->setClientSiren($factureParente->getClientSiren());
+        $avoir->setClientSiret($factureParente->getClientSiret());
+        $avoir->setClientTva($factureParente->getClientTva());
+        $avoir->setClientCodePays($factureParente->getClientCodePays());
+
+        // Copier le snapshot emetteur
+        $avoir->setEmetteurRaisonSociale($factureParente->getEmetteurRaisonSociale());
+        $avoir->setEmetteurAdresse($factureParente->getEmetteurAdresse());
+        $avoir->setEmetteurSiren($factureParente->getEmetteurSiren());
+        $avoir->setEmetteurTva($factureParente->getEmetteurTva());
+        $avoir->setEmetteurIban($factureParente->getEmetteurIban());
+        $avoir->setEmetteurBic($factureParente->getEmetteurBic());
+
+        // Dates
+        $dateAvoir = new \DateTime();
+        $avoir->setDateFacture($dateAvoir);
+        $avoir->setDateEcheance($dateAvoir); // Echeance immediate pour un avoir
+        $avoir->setPeriodeDebut($dateAvoir);
+        $avoir->setPeriodeFin($dateAvoir);
+
+        // Mentions legales
+        $avoir->setMentionsLegales($factureParente->getMentionsLegales());
+        $avoir->setRemiseGlobale($factureParente->getRemiseGlobale());
+
+        // Si avoir total, copier toutes les lignes
+        if ($total) {
+            foreach ($factureParente->getLignes() as $ligneOrigine) {
+                $ligneAvoir = new LigneFacture();
+                $ligneAvoir->setDesignation($ligneOrigine->getDesignation());
+                $ligneAvoir->setDescription($ligneOrigine->getDescription());
+                $ligneAvoir->setQuantite($ligneOrigine->getQuantite());
+                $ligneAvoir->setPrixUnitaire($ligneOrigine->getPrixUnitaire());
+                $ligneAvoir->setRemise($ligneOrigine->getRemise());
+                $ligneAvoir->setTauxTva($ligneOrigine->getTauxTva());
+                $ligneAvoir->calculerTotaux();
+                $avoir->addLigne($ligneAvoir);
+            }
+            $avoir->recalculerTotaux();
+        }
+
+        $this->em->persist($avoir);
+        $this->em->flush();
+
+        return $avoir;
+    }
+
+    /**
+     * Cree un avoir libre (sans facture parente)
+     */
+    public function creerAvoirLibre(
+        \App\Entity\Client $client,
+        ?\App\Entity\Emetteur $emetteur = null,
+        ?string $motif = null
+    ): Facture {
+        // Utiliser l'emetteur par defaut si non fourni
+        if (!$emetteur) {
+            $emetteur = $this->em->getRepository(\App\Entity\Emetteur::class)->findOneBy(['parDefaut' => true]);
+        }
+
+        if (!$emetteur) {
+            throw new \LogicException('Aucun emetteur disponible');
+        }
+
+        $versionEmetteur = $emetteur->getVersionActive();
+        $parametres = $this->parametreFacturationRepository->getOrCreateForEmetteur($emetteur);
+
+        $avoir = new Facture();
+        $avoir->setType(Facture::TYPE_AVOIR);
+        $avoir->setMotifAvoir($motif);
+
+        // Snapshot client
+        $avoir->setClientCode($client->getCode());
+        $avoir->setClientRaisonSociale($client->getRaisonSociale());
+        $avoir->setClientAdresse($client->getAdresse());
+        $avoir->setClientSiren($client->getSiren());
+        $avoir->setClientSiret($client->getSiret());
+        $avoir->setClientTva($client->getTva());
+        $avoir->setClientCodePays($client->getCodePaysTva());
+
+        // Snapshot emetteur
+        if ($versionEmetteur) {
+            $avoir->setEmetteurRaisonSociale($versionEmetteur->getRaisonSociale());
+            $avoir->setEmetteurAdresse($versionEmetteur->getAdresse());
+            $avoir->setEmetteurSiren($versionEmetteur->getSiren());
+            $avoir->setEmetteurTva($versionEmetteur->getTva());
+            $avoir->setEmetteurIban($versionEmetteur->getIban());
+            $avoir->setEmetteurBic($versionEmetteur->getBic());
+        }
+
+        // Dates
+        $dateAvoir = new \DateTime();
+        $avoir->setDateFacture($dateAvoir);
+        $avoir->setDateEcheance($dateAvoir);
+        $avoir->setPeriodeDebut($dateAvoir);
+        $avoir->setPeriodeFin($dateAvoir);
+
+        // Mentions legales
+        $avoir->setMentionsLegales($parametres->getMentionsLegales());
+
+        $this->em->persist($avoir);
+        $this->em->flush();
+
+        return $avoir;
+    }
+
+    /**
+     * Marque un avoir comme rembourse (pour les avoirs lies)
+     */
+    public function marquerRembourse(Facture $avoir): void
+    {
+        if (!$avoir->isAvoir()) {
+            throw new \LogicException('Seul un avoir peut etre marque comme rembourse');
+        }
+
+        if ($avoir->getStatut() !== Facture::STATUT_VALIDEE) {
+            throw new \LogicException('Seul un avoir valide peut etre marque comme rembourse');
+        }
+
+        $avoir->setStatut(Facture::STATUT_REMBOURSEE);
+        $avoir->setDatePaiement(new \DateTime());
+
+        $this->em->flush();
+    }
+
+    /**
+     * Verifie si un avoir peut etre cree sur une facture
+     * Retourne le montant maximum de l'avoir possible
+     */
+    public function getMontantAvoirDisponible(Facture $facture): string
+    {
+        if ($facture->isAvoir()) {
+            return '0.00';
+        }
+
+        return $facture->getMontantRestant();
     }
 }

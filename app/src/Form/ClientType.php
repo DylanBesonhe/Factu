@@ -30,6 +30,20 @@ class ClientType extends AbstractType
                 'required' => false,
                 'attr' => ['placeholder' => '9 chiffres']
             ])
+            ->add('siret', TextType::class, [
+                'label' => 'SIRET',
+                'required' => false,
+                'attr' => ['placeholder' => '14 chiffres']
+            ])
+            ->add('tva', TextType::class, [
+                'label' => 'N° TVA intracommunautaire',
+                'required' => false,
+                'attr' => ['placeholder' => 'FR12345678901']
+            ])
+            ->add('codePaysTva', TextType::class, [
+                'label' => 'Code pays',
+                'attr' => ['placeholder' => 'FR', 'maxlength' => 2]
+            ])
             ->add('adresse', TextareaType::class, [
                 'label' => 'Adresse',
                 'required' => false,

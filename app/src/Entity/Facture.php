@@ -13,10 +13,17 @@ use Symfony\Component\Validator\Constraints as Assert;
 #[ORM\HasLifecycleCallbacks]
 class Facture
 {
+    // Types de document
+    public const TYPE_FACTURE = 'facture';
+    public const TYPE_AVOIR = 'avoir';
+
+    // Statuts
     public const STATUT_BROUILLON = 'brouillon';
     public const STATUT_VALIDEE = 'validee';
     public const STATUT_ENVOYEE = 'envoyee';
     public const STATUT_PAYEE = 'payee';
+    public const STATUT_ANNULEE = 'annulee';
+    public const STATUT_REMBOURSEE = 'remboursee';
 
     #[ORM\Id]
     #[ORM\GeneratedValue]
@@ -26,9 +33,22 @@ class Facture
     #[ORM\Column(length: 50, unique: true, nullable: true)]
     private ?string $numero = null;
 
+    #[ORM\Column(length: 20)]
+    private string $type = self::TYPE_FACTURE;
+
     #[ORM\ManyToOne]
-    #[ORM\JoinColumn(nullable: false)]
+    #[ORM\JoinColumn(nullable: true)]
     private ?Contrat $contrat = null;
+
+    #[ORM\ManyToOne(targetEntity: self::class, inversedBy: 'avoirs')]
+    #[ORM\JoinColumn(nullable: true)]
+    private ?Facture $factureParente = null;
+
+    #[ORM\OneToMany(mappedBy: 'factureParente', targetEntity: self::class)]
+    private Collection $avoirs;
+
+    #[ORM\Column(type: Types::TEXT, nullable: true)]
+    private ?string $motifAvoir = null;
 
     // Snapshot client (copie au moment de la creation)
     #[ORM\Column(length: 20)]
@@ -42,6 +62,18 @@ class Facture
 
     #[ORM\Column(length: 9, nullable: true)]
     private ?string $clientSiren = null;
+
+    #[ORM\Column(length: 14, nullable: true)]
+    private ?string $clientSiret = null;
+
+    #[ORM\Column(length: 15, nullable: true)]
+    private ?string $clientTva = null;
+
+    #[ORM\Column(length: 2, options: ['default' => 'FR'])]
+    private string $clientCodePays = 'FR';
+
+    #[ORM\Column(length: 50, nullable: true)]
+    private ?string $referenceCommande = null;
 
     // Snapshot emetteur (copie au moment de la creation)
     #[ORM\Column(length: 255)]
@@ -71,10 +103,10 @@ class Facture
     #[Assert\NotBlank(message: "La date d'echeance est obligatoire")]
     private ?\DateTimeInterface $dateEcheance = null;
 
-    #[ORM\Column(type: Types::DATE_MUTABLE)]
+    #[ORM\Column(type: Types::DATE_MUTABLE, nullable: true)]
     private ?\DateTimeInterface $periodeDebut = null;
 
-    #[ORM\Column(type: Types::DATE_MUTABLE)]
+    #[ORM\Column(type: Types::DATE_MUTABLE, nullable: true)]
     private ?\DateTimeInterface $periodeFin = null;
 
     // Montants (decimal 12,2)
@@ -100,7 +132,7 @@ class Facture
 
     // Statut et dates de transition
     #[ORM\Column(length: 20)]
-    #[Assert\Choice(choices: [self::STATUT_BROUILLON, self::STATUT_VALIDEE, self::STATUT_ENVOYEE, self::STATUT_PAYEE])]
+    #[Assert\Choice(choices: [self::STATUT_BROUILLON, self::STATUT_VALIDEE, self::STATUT_ENVOYEE, self::STATUT_PAYEE, self::STATUT_ANNULEE, self::STATUT_REMBOURSEE])]
     private ?string $statut = self::STATUT_BROUILLON;
 
     #[ORM\Column(type: Types::DATETIME_MUTABLE, nullable: true)]
@@ -127,6 +159,7 @@ class Facture
     public function __construct()
     {
         $this->lignes = new ArrayCollection();
+        $this->avoirs = new ArrayCollection();
     }
 
     public function getId(): ?int
@@ -154,6 +187,106 @@ class Facture
     {
         $this->contrat = $contrat;
         return $this;
+    }
+
+    public function getType(): string
+    {
+        return $this->type;
+    }
+
+    public function setType(string $type): static
+    {
+        $this->type = $type;
+        return $this;
+    }
+
+    public function isAvoir(): bool
+    {
+        return $this->type === self::TYPE_AVOIR;
+    }
+
+    public function isFacture(): bool
+    {
+        return $this->type === self::TYPE_FACTURE;
+    }
+
+    public function getFactureParente(): ?self
+    {
+        return $this->factureParente;
+    }
+
+    public function setFactureParente(?self $factureParente): static
+    {
+        $this->factureParente = $factureParente;
+        return $this;
+    }
+
+    /**
+     * @return Collection<int, Facture>
+     */
+    public function getAvoirs(): Collection
+    {
+        return $this->avoirs;
+    }
+
+    public function addAvoir(self $avoir): static
+    {
+        if (!$this->avoirs->contains($avoir)) {
+            $this->avoirs->add($avoir);
+            $avoir->setFactureParente($this);
+        }
+        return $this;
+    }
+
+    public function removeAvoir(self $avoir): static
+    {
+        if ($this->avoirs->removeElement($avoir)) {
+            if ($avoir->getFactureParente() === $this) {
+                $avoir->setFactureParente(null);
+            }
+        }
+        return $this;
+    }
+
+    public function getMotifAvoir(): ?string
+    {
+        return $this->motifAvoir;
+    }
+
+    public function setMotifAvoir(?string $motifAvoir): static
+    {
+        $this->motifAvoir = $motifAvoir;
+        return $this;
+    }
+
+    /**
+     * Calcule le total des avoirs lies a cette facture
+     */
+    public function getTotalAvoirs(): string
+    {
+        $total = '0.00';
+        foreach ($this->avoirs as $avoir) {
+            if ($avoir->getStatut() !== self::STATUT_BROUILLON) {
+                $total = bcadd($total, $avoir->getTotalTtc(), 2);
+            }
+        }
+        return $total;
+    }
+
+    /**
+     * Calcule le montant restant du apres deduction des avoirs
+     */
+    public function getMontantRestant(): string
+    {
+        return bcsub($this->totalTtc, $this->getTotalAvoirs(), 2);
+    }
+
+    /**
+     * Verifie si la facture a des avoirs
+     */
+    public function hasAvoirs(): bool
+    {
+        return !$this->avoirs->isEmpty();
     }
 
     public function getClientCode(): ?string
@@ -197,6 +330,50 @@ class Facture
     public function setClientSiren(?string $clientSiren): static
     {
         $this->clientSiren = $clientSiren;
+        return $this;
+    }
+
+    public function getClientSiret(): ?string
+    {
+        return $this->clientSiret;
+    }
+
+    public function setClientSiret(?string $clientSiret): static
+    {
+        $this->clientSiret = $clientSiret;
+        return $this;
+    }
+
+    public function getClientTva(): ?string
+    {
+        return $this->clientTva;
+    }
+
+    public function setClientTva(?string $clientTva): static
+    {
+        $this->clientTva = $clientTva;
+        return $this;
+    }
+
+    public function getClientCodePays(): string
+    {
+        return $this->clientCodePays;
+    }
+
+    public function setClientCodePays(string $clientCodePays): static
+    {
+        $this->clientCodePays = $clientCodePays;
+        return $this;
+    }
+
+    public function getReferenceCommande(): ?string
+    {
+        return $this->referenceCommande;
+    }
+
+    public function setReferenceCommande(?string $referenceCommande): static
+    {
+        $this->referenceCommande = $referenceCommande;
         return $this;
     }
 
@@ -520,6 +697,8 @@ class Facture
             self::STATUT_VALIDEE => 'Validee',
             self::STATUT_ENVOYEE => 'Envoyee',
             self::STATUT_PAYEE => 'Payee',
+            self::STATUT_ANNULEE => 'Annulee',
+            self::STATUT_REMBOURSEE => 'Remboursee',
             default => $this->statut ?? '',
         };
     }
@@ -534,7 +713,21 @@ class Facture
             self::STATUT_VALIDEE => 'bg-blue-100 text-blue-800',
             self::STATUT_ENVOYEE => 'bg-yellow-100 text-yellow-800',
             self::STATUT_PAYEE => 'bg-green-100 text-green-800',
+            self::STATUT_ANNULEE => 'bg-red-100 text-red-800',
+            self::STATUT_REMBOURSEE => 'bg-purple-100 text-purple-800',
             default => 'bg-gray-100 text-gray-800',
+        };
+    }
+
+    /**
+     * Retourne le libelle du type
+     */
+    public function getTypeLabel(): string
+    {
+        return match ($this->type) {
+            self::TYPE_FACTURE => 'Facture',
+            self::TYPE_AVOIR => 'Avoir',
+            default => $this->type,
         };
     }
 
@@ -577,6 +770,20 @@ class Facture
             return null;
         }
         return implode(' ', str_split($this->clientSiren, 3));
+    }
+
+    /**
+     * Formate le SIRET client pour affichage
+     */
+    public function getClientSiretFormatted(): ?string
+    {
+        if (!$this->clientSiret) {
+            return null;
+        }
+        // SIRET = SIREN (9) + NIC (5) -> format: XXX XXX XXX XXXXX
+        $siren = substr($this->clientSiret, 0, 9);
+        $nic = substr($this->clientSiret, 9, 5);
+        return implode(' ', str_split($siren, 3)) . ' ' . $nic;
     }
 
     public function __toString(): string

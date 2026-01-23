@@ -203,52 +203,88 @@ class ContratRepository extends ServiceEntityRepository
     }
 
     /**
-     * Retourne les statistiques pour le dashboard
+     * Retourne les statistiques pour le dashboard (optimise avec SQL)
      * @return array{caMensuel: string, caAnnuel: string, contratsARenouveler: int}
      */
     public function getStatistiques(): array
     {
-        $contratsActifs = $this->createQueryBuilder('c')
-            ->leftJoin('c.lignes', 'l')
-            ->addSelect('l')
-            ->where('c.statut = :statut')
-            ->andWhere('c.dateFin IS NULL OR c.dateFin >= :now')
-            ->setParameter('statut', Contrat::STATUT_ACTIF)
-            ->setParameter('now', new \DateTime())
-            ->getQuery()
-            ->getResult();
+        $conn = $this->getEntityManager()->getConnection();
+        $now = new \DateTime();
 
-        $caMensuel = '0.00';
+        // Calcul du CA par periodicite en une seule requete SQL
+        $sql = "
+            SELECT
+                c.periodicite,
+                SUM(l.quantite * l.prix_unitaire * (1 - COALESCE(l.remise, 0) / 100)) as total_ht
+            FROM contrat c
+            LEFT JOIN ligne_contrat l ON l.contrat_id = c.id
+            WHERE c.statut = :statut
+            AND (c.date_fin IS NULL OR c.date_fin >= :now)
+            GROUP BY c.periodicite
+        ";
+
+        $result = $conn->executeQuery($sql, [
+            'statut' => Contrat::STATUT_ACTIF,
+            'now' => $now->format('Y-m-d'),
+        ])->fetchAllAssociative();
+
         $caAnnuel = '0.00';
-
-        foreach ($contratsActifs as $contrat) {
-            $totalHt = $contrat->getTotalHt();
-
-            // CA annuel = somme des totaux selon périodicité
-            $multiplicateur = match ($contrat->getPeriodicite()) {
+        foreach ($result as $row) {
+            $totalHt = $row['total_ht'] ?? '0';
+            $multiplicateur = match ($row['periodicite']) {
                 Contrat::PERIODICITE_MENSUELLE => 12,
                 Contrat::PERIODICITE_TRIMESTRIELLE => 4,
                 Contrat::PERIODICITE_ANNUELLE => 1,
                 default => 1,
             };
             $caAnnuel = bcadd($caAnnuel, bcmul($totalHt, (string) $multiplicateur, 2), 2);
-
-            // CA mensuel = total annuel / 12
-            $caMensuel = bcadd($caMensuel, bcdiv(bcmul($totalHt, (string) $multiplicateur, 2), '12', 2), 2);
         }
 
-        // Contrats à renouveler (anniversaire dans les 30 prochains jours)
-        $contratsARenouveler = 0;
-        $now = new \DateTime();
-        $in30Days = (new \DateTime())->modify('+30 days');
+        $caMensuel = bcdiv($caAnnuel, '12', 2);
 
-        foreach ($contratsActifs as $contrat) {
-            $anniversaire = $contrat->getDateAnniversaire();
+        // Contrats a renouveler (anniversaire dans les 30 prochains jours)
+        $in30Days = (clone $now)->modify('+30 days');
+
+        $sqlRenouveler = "
+            SELECT COUNT(*) as count
+            FROM contrat c
+            WHERE c.statut = :statut
+            AND (c.date_fin IS NULL OR c.date_fin >= :now)
+            AND (
+                (MONTH(c.date_anniversaire) = :currentMonth AND DAY(c.date_anniversaire) >= :currentDay)
+                OR (MONTH(c.date_anniversaire) = :nextMonth AND DAY(c.date_anniversaire) <= :nextDay)
+                OR (MONTH(c.date_anniversaire) > :currentMonth AND MONTH(c.date_anniversaire) < :nextMonth)
+            )
+        ";
+
+        // Simplifier: compter les anniversaires entre maintenant et +30 jours
+        $contratsARenouveler = $this->createQueryBuilder('c')
+            ->select('COUNT(c.id)')
+            ->where('c.statut = :statut')
+            ->andWhere('c.dateFin IS NULL OR c.dateFin >= :now')
+            ->setParameter('statut', Contrat::STATUT_ACTIF)
+            ->setParameter('now', $now)
+            ->getQuery()
+            ->getSingleScalarResult();
+
+        // Pour les renouvellements, on garde une logique simple
+        $contratsActifs = $this->createQueryBuilder('c')
+            ->select('c.dateAnniversaire')
+            ->where('c.statut = :statut')
+            ->andWhere('c.dateFin IS NULL OR c.dateFin >= :now')
+            ->andWhere('c.dateAnniversaire IS NOT NULL')
+            ->setParameter('statut', Contrat::STATUT_ACTIF)
+            ->setParameter('now', $now)
+            ->getQuery()
+            ->getArrayResult();
+
+        $contratsARenouveler = 0;
+        foreach ($contratsActifs as $row) {
+            $anniversaire = $row['dateAnniversaire'];
             if ($anniversaire === null) {
                 continue;
             }
 
-            // Normaliser l'anniversaire à l'année courante pour comparaison
             $anniversaireThisYear = \DateTime::createFromFormat(
                 'Y-m-d',
                 $now->format('Y') . '-' . $anniversaire->format('m-d')

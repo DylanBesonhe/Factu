@@ -88,6 +88,32 @@ class FactureRepository extends ServiceEntityRepository
     }
 
     /**
+     * Retourne les factures envoyees et payees
+     * @param \DateTimeInterface|null $moisReference Si fourni, filtre les factures dont la periode contient ce mois
+     * @return Facture[]
+     */
+    public function findEnvoyees(?\DateTimeInterface $moisReference = null): array
+    {
+        $qb = $this->createQueryBuilder('f')
+            ->leftJoin('f.contrat', 'c')
+            ->addSelect('c')
+            ->where('f.statut IN (:statuts)')
+            ->setParameter('statuts', [Facture::STATUT_ENVOYEE, Facture::STATUT_PAYEE])
+            ->orderBy('f.dateEnvoi', 'DESC');
+
+        if ($moisReference !== null) {
+            // Filtrer: le mois de periodeDebut doit correspondre au mois selectionne
+            $debutMois = new \DateTime($moisReference->format('Y-m-01'));
+            $finMois = (clone $debutMois)->modify('last day of this month');
+            $qb->andWhere('f.periodeDebut >= :debutMois AND f.periodeDebut <= :finMois')
+                ->setParameter('debutMois', $debutMois)
+                ->setParameter('finMois', $finMois);
+        }
+
+        return $qb->getQuery()->getResult();
+    }
+
+    /**
      * Recherche les factures avec filtres et pagination
      */
     public function searchWithFilters(
@@ -200,6 +226,66 @@ class FactureRepository extends ServiceEntityRepository
             ->orderBy('f.dateFacture', 'DESC')
             ->getQuery()
             ->getResult();
+    }
+
+    /**
+     * Retourne les factures manuelles (ponctuelles)
+     * @param \DateTimeInterface|null $moisReference Si fourni, filtre les factures du mois
+     * @return Facture[]
+     */
+    public function findManuelles(?string $statut = null, ?\DateTimeInterface $moisReference = null): array
+    {
+        $qb = $this->createQueryBuilder('f')
+            ->leftJoin('f.contrat', 'c')
+            ->addSelect('c')
+            ->where('f.type = :type')
+            ->setParameter('type', Facture::TYPE_FACTURE)
+            ->orderBy('f.dateFacture', 'DESC');
+
+        if ($statut !== null) {
+            $qb->andWhere('f.statut = :statut')
+                ->setParameter('statut', $statut);
+        }
+
+        if ($moisReference !== null) {
+            $debutMois = new \DateTime($moisReference->format('Y-m-01'));
+            $finMois = (clone $debutMois)->modify('last day of this month');
+            $qb->andWhere('f.dateFacture >= :debutMois AND f.dateFacture <= :finMois')
+                ->setParameter('debutMois', $debutMois)
+                ->setParameter('finMois', $finMois);
+        }
+
+        return $qb->getQuery()->getResult();
+    }
+
+    /**
+     * Retourne les avoirs
+     * @param \DateTimeInterface|null $moisReference Si fourni, filtre les avoirs du mois
+     * @return Facture[]
+     */
+    public function findAvoirs(?string $statut = null, ?\DateTimeInterface $moisReference = null): array
+    {
+        $qb = $this->createQueryBuilder('f')
+            ->leftJoin('f.factureParente', 'fp')
+            ->addSelect('fp')
+            ->where('f.type = :type')
+            ->setParameter('type', Facture::TYPE_AVOIR)
+            ->orderBy('f.dateFacture', 'DESC');
+
+        if ($statut !== null) {
+            $qb->andWhere('f.statut = :statut')
+                ->setParameter('statut', $statut);
+        }
+
+        if ($moisReference !== null) {
+            $debutMois = new \DateTime($moisReference->format('Y-m-01'));
+            $finMois = (clone $debutMois)->modify('last day of this month');
+            $qb->andWhere('f.dateFacture >= :debutMois AND f.dateFacture <= :finMois')
+                ->setParameter('debutMois', $debutMois)
+                ->setParameter('finMois', $finMois);
+        }
+
+        return $qb->getQuery()->getResult();
     }
 
     /**
