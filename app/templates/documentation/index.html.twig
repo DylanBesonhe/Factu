@@ -1,0 +1,353 @@
+{% extends 'layout.html.twig' %}
+
+{% block title %}Documentation - Factu{% endblock %}
+
+{% block page_title %}Documentation technique{% endblock %}
+
+{% block content %}
+<div class="space-y-6">
+    {# Derniere mise a jour #}
+    <div class="bg-blue-50 border border-blue-200 rounded-lg p-4">
+        <p class="text-sm text-blue-800">
+            <strong>Derniere mise a jour :</strong> 23 janvier 2026
+        </p>
+    </div>
+
+    {# Roadmap - Sprints a venir #}
+    <div class="bg-white rounded-lg shadow">
+        <div class="p-6 border-b border-gray-200 bg-gradient-to-r from-indigo-500 to-purple-600 rounded-t-lg">
+            <h2 class="text-xl font-semibold text-white">Roadmap - Sprints a venir</h2>
+            <p class="text-sm text-indigo-100 mt-1">Fonctionnalites planifiees pour les prochaines versions</p>
+        </div>
+        <div class="p-6">
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                {# Sprint 9 - Module Licences #}
+                <div class="border border-indigo-200 rounded-lg p-4 bg-indigo-50">
+                    <div class="flex items-center gap-2 mb-3">
+                        <span class="bg-indigo-600 text-white text-xs font-medium px-2.5 py-0.5 rounded">Sprint 9</span>
+                        <span class="text-sm text-gray-500">Priorite haute</span>
+                    </div>
+                    <h3 class="text-lg font-medium text-gray-900 mb-2">Module Licences complet</h3>
+                    <p class="text-sm text-gray-600 mb-3">Gestion complete du suivi des licences clients avec import et comparaison.</p>
+                    <ul class="list-disc list-inside text-sm text-gray-600 space-y-1">
+                        <li>Import CSV des releves de licences</li>
+                        <li>Releves mensuels automatiques</li>
+                        <li>Comparaison contrat vs reel</li>
+                        <li>Alertes sur ecarts significatifs</li>
+                        <li>Historique des variations</li>
+                        <li>Export des donnees de suivi</li>
+                    </ul>
+                    <div class="mt-3 pt-3 border-t border-indigo-200">
+                        <p class="text-xs text-gray-500">
+                            <strong>Fichiers concernes :</strong> LicenceController, ImportService, templates/licence/*
+                        </p>
+                    </div>
+                </div>
+
+                {# Sprint 10 - Tableau de bord avance #}
+                <div class="border border-purple-200 rounded-lg p-4 bg-purple-50">
+                    <div class="flex items-center gap-2 mb-3">
+                        <span class="bg-purple-600 text-white text-xs font-medium px-2.5 py-0.5 rounded">Sprint 10</span>
+                        <span class="text-sm text-gray-500">Priorite haute</span>
+                    </div>
+                    <h3 class="text-lg font-medium text-gray-900 mb-2">Tableau de bord avance</h3>
+                    <p class="text-sm text-gray-600 mb-3">Dashboard enrichi avec graphiques et indicateurs cles.</p>
+                    <ul class="list-disc list-inside text-sm text-gray-600 space-y-1">
+                        <li>Graphiques CA mensuel/annuel (Chart.js)</li>
+                        <li>KPIs : CA, MRR, ARR, taux de renouvellement</li>
+                        <li>Alertes echeances contrats (30/60/90 jours)</li>
+                        <li>Top clients par CA</li>
+                        <li>Evolution du parc licences</li>
+                        <li>Factures en attente de paiement</li>
+                    </ul>
+                    <div class="mt-3 pt-3 border-t border-purple-200">
+                        <p class="text-xs text-gray-500">
+                            <strong>Fichiers concernes :</strong> DashboardController, StatistiquesService, templates/dashboard/*
+                        </p>
+                    </div>
+                </div>
+
+                {# Sprint 11 - Envoi email factures #}
+                <div class="border border-blue-200 rounded-lg p-4 bg-blue-50">
+                    <div class="flex items-center gap-2 mb-3">
+                        <span class="bg-blue-600 text-white text-xs font-medium px-2.5 py-0.5 rounded">Sprint 11</span>
+                        <span class="text-sm text-gray-500">Priorite moyenne</span>
+                    </div>
+                    <h3 class="text-lg font-medium text-gray-900 mb-2">Envoi email factures</h3>
+                    <p class="text-sm text-gray-600 mb-3">Envoi automatise des factures par email avec suivi.</p>
+                    <ul class="list-disc list-inside text-sm text-gray-600 space-y-1">
+                        <li>Configuration SMTP (Mailer Symfony)</li>
+                        <li>Templates email personnalisables</li>
+                        <li>Envoi individuel ou groupé</li>
+                        <li>Piece jointe PDF automatique</li>
+                        <li>Suivi des envois (date, statut)</li>
+                        <li>Relances automatiques</li>
+                    </ul>
+                    <div class="mt-3 pt-3 border-t border-blue-200">
+                        <p class="text-xs text-gray-500">
+                            <strong>Fichiers concernes :</strong> EmailService, FacturationController, templates/email/*
+                        </p>
+                    </div>
+                </div>
+
+                {# Sprint 12 - API REST #}
+                <div class="border border-teal-200 rounded-lg p-4 bg-teal-50">
+                    <div class="flex items-center gap-2 mb-3">
+                        <span class="bg-teal-600 text-white text-xs font-medium px-2.5 py-0.5 rounded">Sprint 12</span>
+                        <span class="text-sm text-gray-500">Priorite moyenne</span>
+                    </div>
+                    <h3 class="text-lg font-medium text-gray-900 mb-2">API REST</h3>
+                    <p class="text-sm text-gray-600 mb-3">API pour integration avec systemes externes.</p>
+                    <ul class="list-disc list-inside text-sm text-gray-600 space-y-1">
+                        <li>Authentification JWT (LexikJWTBundle)</li>
+                        <li>Endpoints CRUD clients/contrats</li>
+                        <li>Endpoints lecture factures</li>
+                        <li>Webhooks pour evenements</li>
+                        <li>Documentation OpenAPI/Swagger</li>
+                        <li>Rate limiting par token</li>
+                    </ul>
+                    <div class="mt-3 pt-3 border-t border-teal-200">
+                        <p class="text-xs text-gray-500">
+                            <strong>Fichiers concernes :</strong> Api/*, ApiController, SecurityBundle JWT
+                        </p>
+                    </div>
+                </div>
+            </div>
+
+            {# Legende priorites #}
+            <div class="mt-6 pt-4 border-t border-gray-200">
+                <p class="text-xs text-gray-500">
+                    <strong>Legende :</strong>
+                    <span class="ml-2 bg-indigo-600 text-white text-xs px-2 py-0.5 rounded">Priorite haute</span> - Fonctionnalite critique pour l'activite
+                    <span class="ml-2 bg-blue-600 text-white text-xs px-2 py-0.5 rounded">Priorite moyenne</span> - Amelioration significative
+                </p>
+            </div>
+        </div>
+    </div>
+
+    {# Sprint 8 #}
+    <div class="bg-white rounded-lg shadow">
+        <div class="p-6 border-b border-gray-200">
+            <h2 class="text-xl font-semibold text-gray-900">Sprint 8 - 23 janvier 2026</h2>
+            <p class="text-sm text-gray-500 mt-1">Conformite e-invoicing, securite et optimisations</p>
+        </div>
+        <div class="p-6 space-y-6">
+            {# Conformite Factur-X #}
+            <div>
+                <h3 class="text-lg font-medium text-gray-900 mb-3">Conformite facturation electronique 2026</h3>
+                <p class="text-gray-600 mb-3">
+                    Implementation de la reforme francaise de facturation electronique (e-invoicing) applicable au 1er septembre 2026.
+                </p>
+                <div class="bg-gray-50 rounded-lg p-4">
+                    <h4 class="font-medium text-gray-900 mb-2">Nouveaux champs Client</h4>
+                    <ul class="list-disc list-inside text-sm text-gray-600 space-y-1">
+                        <li><code class="bg-gray-200 px-1 rounded">tva</code> - N° TVA intracommunautaire (format FR + 11 car.)</li>
+                        <li><code class="bg-gray-200 px-1 rounded">siret</code> - SIRET (14 chiffres avec validation Luhn)</li>
+                        <li><code class="bg-gray-200 px-1 rounded">codePaysTva</code> - Code pays ISO (defaut: FR)</li>
+                    </ul>
+                </div>
+                <div class="bg-gray-50 rounded-lg p-4 mt-3">
+                    <h4 class="font-medium text-gray-900 mb-2">Export Factur-X</h4>
+                    <ul class="list-disc list-inside text-sm text-gray-600 space-y-1">
+                        <li>Profil BASIC avec lignes de facture detaillees</li>
+                        <li>PDF/A-3 avec XML embarque conforme EN16931</li>
+                        <li>Bouton "Factur-X" disponible sur les factures validees</li>
+                        <li>Validation possible sur <a href="https://portail-e-facture.gouv.fr/validation" target="_blank" class="text-blue-600 hover:underline">portail-e-facture.gouv.fr</a></li>
+                    </ul>
+                </div>
+            </div>
+
+            {# Factures particulieres #}
+            <div>
+                <h3 class="text-lg font-medium text-gray-900 mb-3">Factures particulieres</h3>
+                <p class="text-gray-600 mb-3">
+                    Possibilite de marquer un contrat comme "facture particuliere" avec une description specifique.
+                </p>
+                <div class="flex items-center gap-2 mb-3">
+                    <span class="relative group cursor-help inline-flex">
+                        <svg class="w-5 h-5 text-yellow-500" fill="currentColor" viewBox="0 0 20 20">
+                            <path fill-rule="evenodd" d="M8.257 3.099c.765-1.36 2.722-1.36 3.486 0l5.58 9.92c.75 1.334-.213 2.98-1.742 2.98H4.42c-1.53 0-2.493-1.646-1.743-2.98l5.58-9.92zM11 13a1 1 0 11-2 0 1 1 0 012 0zm-1-8a1 1 0 00-1 1v3a1 1 0 002 0V6a1 1 0 00-1-1z" clip-rule="evenodd"/>
+                        </svg>
+                    </span>
+                    <span class="text-sm text-gray-600">Cette icone indique une facture particuliere (survolez pour voir la description)</span>
+                </div>
+                <ul class="list-disc list-inside text-sm text-gray-600 space-y-1">
+                    <li>Checkbox "Facture particuliere" sur le formulaire contrat</li>
+                    <li>Champ description visible quand la case est cochee</li>
+                    <li>Icone avec tooltip sur les listes de contrats et factures</li>
+                </ul>
+            </div>
+
+            {# Gestion des licences #}
+            <div>
+                <h3 class="text-lg font-medium text-gray-900 mb-3">Gestion des licences</h3>
+                <ul class="list-disc list-inside text-sm text-gray-600 space-y-1">
+                    <li>Mise a jour manuelle du nombre de licences dans l'onglet "Historique licences"</li>
+                    <li>Distinction entre "Nb licences initial" (contrat) et licences actuelles (historique)</li>
+                    <li>Source indiquee : "manuel" ou "import"</li>
+                </ul>
+            </div>
+
+            {# Optimisations #}
+            <div>
+                <h3 class="text-lg font-medium text-gray-900 mb-3">Optimisations de performance</h3>
+                <div class="bg-gray-50 rounded-lg p-4">
+                    <h4 class="font-medium text-gray-900 mb-2">13 index de base de donnees ajoutes</h4>
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-4 text-sm">
+                        <div>
+                            <p class="font-medium text-gray-700">Contrat</p>
+                            <ul class="list-disc list-inside text-gray-600">
+                                <li>statut</li>
+                                <li>periodicite</li>
+                                <li>date_debut_facturation</li>
+                                <li>date_anniversaire</li>
+                                <li>statut + periodicite (composite)</li>
+                            </ul>
+                        </div>
+                        <div>
+                            <p class="font-medium text-gray-700">Facture</p>
+                            <ul class="list-disc list-inside text-gray-600">
+                                <li>statut</li>
+                                <li>date_facture</li>
+                                <li>periode_debut</li>
+                                <li>type</li>
+                                <li>statut + type (composite)</li>
+                            </ul>
+                        </div>
+                    </div>
+                </div>
+                <p class="text-sm text-gray-600 mt-3">
+                    Calcul du CA optimise avec requete SQL au lieu de boucles PHP.
+                </p>
+            </div>
+
+            {# Securite #}
+            <div>
+                <h3 class="text-lg font-medium text-gray-900 mb-3">Ameliorations de securite</h3>
+                <div class="space-y-3">
+                    <div class="bg-green-50 border border-green-200 rounded-lg p-4">
+                        <h4 class="font-medium text-green-800 mb-2">Session securisee</h4>
+                        <ul class="list-disc list-inside text-sm text-green-700 space-y-1">
+                            <li><code class="bg-green-100 px-1 rounded">cookie_secure: auto</code> - HTTPS automatique en production</li>
+                            <li><code class="bg-green-100 px-1 rounded">cookie_httponly: true</code> - Protection XSS</li>
+                            <li><code class="bg-green-100 px-1 rounded">cookie_samesite: lax</code> - Protection CSRF</li>
+                            <li><code class="bg-green-100 px-1 rounded">gc_maxlifetime: 3600</code> - Expiration session 1h</li>
+                        </ul>
+                    </div>
+                    <div class="bg-green-50 border border-green-200 rounded-lg p-4">
+                        <h4 class="font-medium text-green-800 mb-2">Rate limiting login</h4>
+                        <p class="text-sm text-green-700">
+                            Maximum 5 tentatives de connexion par minute. Protection anti-brute force.
+                        </p>
+                    </div>
+                    <div class="bg-green-50 border border-green-200 rounded-lg p-4">
+                        <h4 class="font-medium text-green-800 mb-2">Autorisation explicite</h4>
+                        <p class="text-sm text-green-700">
+                            Attribut <code class="bg-green-100 px-1 rounded">#[IsGranted]</code> sur tous les controllers pour defense en profondeur.
+                        </p>
+                    </div>
+                </div>
+            </div>
+
+            {# Corrections #}
+            <div>
+                <h3 class="text-lg font-medium text-gray-900 mb-3">Corrections</h3>
+                <ul class="list-disc list-inside text-sm text-gray-600 space-y-1">
+                    <li>Fix montants factures a 0 dans les fixtures (utilisation de <code class="bg-gray-200 px-1 rounded">addLigne()</code>)</li>
+                    <li>Fix overlay bloquant l'interface (id="sidebar" manquant)</li>
+                    <li>Fix token CSRF invalide apres rechargement fixtures</li>
+                    <li>Tests mis a jour avec numeros 2025</li>
+                </ul>
+            </div>
+        </div>
+    </div>
+
+    {# Sprint 7 #}
+    <div class="bg-white rounded-lg shadow">
+        <div class="p-6 border-b border-gray-200">
+            <h2 class="text-xl font-semibold text-gray-900">Sprint 7 - 22 janvier 2026</h2>
+            <p class="text-sm text-gray-500 mt-1">Generation PDF des factures</p>
+        </div>
+        <div class="p-6">
+            <ul class="list-disc list-inside text-sm text-gray-600 space-y-1">
+                <li>Service <code class="bg-gray-200 px-1 rounded">PdfFactureService</code> avec DOMPDF</li>
+                <li>Template PDF autonome avec CSS inline</li>
+                <li>Filigrane "BROUILLON" sur les factures non validees</li>
+                <li>Bouton PDF sur les pages facture</li>
+            </ul>
+        </div>
+    </div>
+
+    {# Sprint 6 #}
+    <div class="bg-white rounded-lg shadow">
+        <div class="p-6 border-b border-gray-200">
+            <h2 class="text-xl font-semibold text-gray-900">Sprint 6 - 21 janvier 2026</h2>
+            <p class="text-sm text-gray-500 mt-1">Module facturation complet</p>
+        </div>
+        <div class="p-6">
+            <ul class="list-disc list-inside text-sm text-gray-600 space-y-1">
+                <li>Workflow de facturation (A creer, Brouillons, Validees, Envoyees)</li>
+                <li>Navigation par mois</li>
+                <li>Creation automatique depuis contrats</li>
+                <li>Gestion des lignes de facture</li>
+                <li>Transitions de statut (valider, envoyer, payer)</li>
+            </ul>
+        </div>
+    </div>
+
+    {# Architecture #}
+    <div class="bg-white rounded-lg shadow">
+        <div class="p-6 border-b border-gray-200">
+            <h2 class="text-xl font-semibold text-gray-900">Architecture technique</h2>
+        </div>
+        <div class="p-6">
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                <div>
+                    <h4 class="font-medium text-gray-900 mb-2">Stack</h4>
+                    <ul class="list-disc list-inside text-sm text-gray-600 space-y-1">
+                        <li>Symfony 7.4</li>
+                        <li>PHP 8.3</li>
+                        <li>MySQL 8.4</li>
+                        <li>Tailwind CSS</li>
+                        <li>Alpine.js / Stimulus</li>
+                    </ul>
+                </div>
+                <div>
+                    <h4 class="font-medium text-gray-900 mb-2">Services</h4>
+                    <ul class="list-disc list-inside text-sm text-gray-600 space-y-1">
+                        <li><code class="bg-gray-200 px-1 rounded">FacturationService</code> - Logique metier facturation</li>
+                        <li><code class="bg-gray-200 px-1 rounded">PdfFactureService</code> - Generation PDF</li>
+                        <li><code class="bg-gray-200 px-1 rounded">FacturXService</code> - Export Factur-X</li>
+                        <li><code class="bg-gray-200 px-1 rounded">FileUploadService</code> - Gestion fichiers</li>
+                    </ul>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    {# Tests #}
+    <div class="bg-white rounded-lg shadow">
+        <div class="p-6 border-b border-gray-200">
+            <h2 class="text-xl font-semibold text-gray-900">Tests</h2>
+        </div>
+        <div class="p-6">
+            <div class="flex items-center gap-4">
+                <div class="bg-green-100 text-green-800 px-4 py-2 rounded-lg">
+                    <span class="text-2xl font-bold">82</span>
+                    <span class="text-sm ml-1">tests</span>
+                </div>
+                <div class="bg-green-100 text-green-800 px-4 py-2 rounded-lg">
+                    <span class="text-2xl font-bold">179</span>
+                    <span class="text-sm ml-1">assertions</span>
+                </div>
+                <div class="bg-green-100 text-green-800 px-3 py-2 rounded-lg text-sm">
+                    OK
+                </div>
+            </div>
+            <p class="text-sm text-gray-600 mt-3">
+                Commande : <code class="bg-gray-200 px-2 py-1 rounded">php bin/phpunit</code>
+            </p>
+        </div>
+    </div>
+</div>
+{% endblock %}
